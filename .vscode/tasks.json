@@ -1,4 +1,4 @@
-﻿{
+{
   "version": "2.0.0",
   "tasks": [
     {
@@ -13,6 +13,13 @@
       "command": "docker compose -f ops/docker_compose_archon_highway_v0.1_04_09_2025.yml up --build",
       "problemMatcher": [],
       "options": { "cwd": "${workspaceFolder}" }
+    },
+    {
+    "label": "Archon: up (dev, reload)",
+    "type": "shell",
+    "command": "docker compose -f ops/docker_compose_archon_highway_v0.1_04_09_2025.yml -f ops/docker_compose_archon_dev.override.yml up --build"
+    ,  "problemMatcher": [],
+    "options": { "cwd": "${workspaceFolder}" }
     },
     {
       "label": "Archon: down",
