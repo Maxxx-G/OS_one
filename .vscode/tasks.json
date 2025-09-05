@@ -1,0 +1,25 @@
+﻿{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Env: seed archon_api.env (local only)",
+      "type": "shell",
+      "command": "if (!(Test-Path policies/env)) { New-Item -ItemType Directory policies/env | Out-Null }; if (Test-Path policies/env/archon_api.env.example) { Copy-Item policies/env/archon_api.env.example policies/env/archon_api.env -Force } else { echo 'ARCHON_ENV=dev`nARCHON_PORT=7700' | Out-File -Encoding utf8 policies/env/archon_api.env }",
+      "problemMatcher": []
+    },
+    {
+      "label": "Archon: up (highway)",
+      "type": "shell",
+      "command": "docker compose -f ops/docker_compose_archon_highway_v0.1_04_09_2025.yml up --build",
+      "problemMatcher": [],
+      "options": { "cwd": "${workspaceFolder}" }
+    },
+    {
+      "label": "Archon: down",
+      "type": "shell",
+      "command": "docker compose -f ops/docker_compose_archon_highway_v0.1_04_09_2025.yml down",
+      "problemMatcher": [],
+      "options": { "cwd": "${workspaceFolder}" }
+    }
+  ]
+}

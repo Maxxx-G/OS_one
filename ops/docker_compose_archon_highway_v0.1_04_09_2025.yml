@@ -1,0 +1,13 @@
+services:
+  archon-api:
+    build:
+      context: ../integrations/archon/python
+    container_name: osone-archon-api
+    ports:
+      - "${ARCHON_PORT:-7700}:7700"
+    env_file:
+      - ../policies/env/archon_api.env
+    volumes:
+      - ../kb:/app/kb
+      - ../logs:/var/log/archon
+    restart: unless-stopped
