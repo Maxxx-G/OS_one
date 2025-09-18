@@ -13,7 +13,7 @@ jobs:
       - name: Type check (apps/web-ui)
         run: |
           if [ -f "apps/web-ui/tsconfig.json" ]; then
-            npx tsc -p apps/web-ui --noEmit
+            npx -y -p typescript@5 -p @types/node@20 tsc -p apps/web-ui --noEmit
           else
             echo "tsconfig missing, skipping typecheck"
           fi
