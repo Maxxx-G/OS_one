@@ -1,17 +1,1 @@
-name: Plan Guard (Weekly)
-
-on:
-  schedule:
-    - cron: "0 0 * * 0"   # Sundays 00:00 UTC
-  workflow_dispatch:
-
-jobs:
-  guard:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Validate governing template links + naming
-        shell: pwsh
-        run: ./ops/check_plan_templates.ps1 -PlanPath 'docs/plans/OS1-PLAN.v2025.09.17.md'
-
+﻿
