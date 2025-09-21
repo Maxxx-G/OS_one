@@ -1,0 +1,23 @@
+###
+# Flag OFF → expect 404 "disabled"
+GET http://localhost:3001/api/llm/openwebui/health
+
+###
+# Flag ON → health
+# Set NEXT_PUBLIC_FEATURE_ADAPTERS=1 in .env.local before running the app.
+GET http://localhost:3001/api/llm/openwebui/health
+
+###
+# OpenAI health (key optional; should report key:missing if empty)
+GET http://localhost:3001/api/llm/openai/health
+
+###
+# Stream smoke (Open-WebUI)
+POST http://localhost:3001/api/llm/openwebui/stream
+Content-Type: application/json
+
+{
+  "model":"gpt-4o-mini",
+  "messages":[{"role":"user","content":"hello"}],
+  "stream":true
+}

@@ -1,0 +1,24 @@
+###
+# Flag OFF → expect 404 "threads:disabled"
+POST http://localhost:3001/api/threads
+Content-Type: application/json
+Authorization: Bearer <user_jwt>
+
+{"title":"TU-4 test"}
+
+###
+# Flag ON + valid JWT → create thread
+# Requires NEXT_PUBLIC_FEATURE_THREADS=1 and Supabase envs.
+POST http://localhost:3001/api/threads
+Content-Type: application/json
+Authorization: Bearer <user_jwt>
+
+{"user_id":"<auth.uid()>","title":"TU-4 test"}
+
+###
+# Add message to a thread you own
+POST http://localhost:3001/api/threads/<thread_id>/messages
+Content-Type: application/json
+Authorization: Bearer <user_jwt>
+
+{"user_id":"<auth.uid()>","role":"user","content":"hi"}
