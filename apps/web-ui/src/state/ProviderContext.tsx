@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
-import type { Provider, ProviderRequest } from '../../../../packages/providers/src';
+import type { Provider, ProviderRequest, ProviderResponse } from '../../../../packages/providers/src/types';
 import { OpenAIResponses } from '../../../../packages/providers/src/openai_responses';
 import { OllamaOpenWebUI } from '../../../../packages/providers/src/ollama_openwebui';
 
@@ -18,7 +18,7 @@ type ProviderState = {
   current: Provider;
   streamStatus: 'idle' | 'streaming' | 'done' | 'error';
   setStreamStatus: (s: ProviderState['streamStatus']) => void;
-  runComplete: (req: ProviderRequest) => Promise<string>;
+  runComplete: (req: ProviderRequest) => Promise<ProviderResponse>;
 };
 
 const Ctx = createContext<ProviderState | null>(null);
@@ -30,15 +30,15 @@ export const ProviderContext: React.FC<{ children: React.ReactNode }> = ({ child
 
   const current = useMemo(() => PROVIDERS[key], [key]);
 
-  const runComplete = async (req: ProviderRequest) => {
+  const runComplete = async (req: ProviderRequest): Promise<ProviderResponse> => {
     setStreamStatus('streaming');
     try {
-      const res = await current.complete({ ...req, prompt: req.prompt, system: req.system });
+      const res = await current.complete({ ...req, meta: { model } });
       setStreamStatus('done');
-      return res.text;
-    } catch {
+      return res;
+    } catch (e) {
       setStreamStatus('error');
-      return '';
+      return { text: '', responseId: undefined };
     }
   };
 
