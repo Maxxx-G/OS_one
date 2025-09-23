@@ -3,7 +3,7 @@ name: Providers Ping
 on:
   pull_request:
   push:
-    branches: [ main, develop, "**/ci/**", "**/codex/**" ]
+    branches: [main, develop, '**/ci/**', '**/codex/**']
 
 jobs:
   ping:
@@ -13,7 +13,7 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       OLLAMA_BASE: ${{ secrets.OLLAMA_BASE }}
       OPENWEBUI_BASE: ${{ secrets.OPENWEBUI_BASE }}
-      NEXT_PUBLIC_SUPABASE_URL: "http://localhost" # mute db features during smoke
+      NEXT_PUBLIC_SUPABASE_URL: 'http://localhost' # mute db features during smoke
     steps:
       - uses: actions/checkout@v4
 

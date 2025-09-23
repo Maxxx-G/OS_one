@@ -29,7 +29,7 @@ export const dbStore: SessionStore & { online: boolean } = {
       if ((m as any).role === 'user') {
         await api('/api/db/threads', {
           method: 'POST',
-          headers: { 'Authorization': (globalThis as any).os1_user_token || '' },
+          headers: { Authorization: (globalThis as any).os1_user_token || '' },
           body: JSON.stringify({ user_id: (globalThis as any).os1_user_id, title: 'default' }),
         });
       }

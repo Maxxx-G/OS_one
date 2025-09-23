@@ -15,12 +15,15 @@ export const useProfile = () => {
   const [loading, setLoading] = useState(false);
 
   const refresh = useCallback(async () => {
-    if (!token) { setProfile(null); return; }
+    if (!token) {
+      setProfile(null);
+      return;
+    }
     setLoading(true);
     try {
       const r = await fetch('/api/memory/search', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ q: '', topk: 0 }),
       });
       if (r.ok) {
@@ -34,22 +37,27 @@ export const useProfile = () => {
     }
   }, [token]);
 
-  const update = useCallback(async (patch: Partial<Profile>) => {
-    if (!token || !userId) return { ok: false };
-    const r = await fetch('/api/profile/update', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ user_id: userId, ...patch }),
-    });
-    if (r.ok) {
-      const j = await r.json();
-      setProfile(j);
-      return { ok: true, data: j };
-    }
-    return { ok: false };
-  }, [token, userId]);
+  const update = useCallback(
+    async (patch: Partial<Profile>) => {
+      if (!token || !userId) return { ok: false };
+      const r = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ user_id: userId, ...patch }),
+      });
+      if (r.ok) {
+        const j = await r.json();
+        setProfile(j);
+        return { ok: true, data: j };
+      }
+      return { ok: false };
+    },
+    [token, userId],
+  );
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   return { profile, loading, refresh, update };
 };

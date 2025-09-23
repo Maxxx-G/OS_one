@@ -7,7 +7,7 @@ export const ModelTransportToggle: React.FC = () => {
   return (
     <label>
       Model:
-      <input value={model} onChange={e => setModel(e.target.value)} placeholder="Model name" />
+      <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="Model name" />
     </label>
   );
 };

@@ -5,7 +5,7 @@ export interface Message {
   id: string;
   role: MessageRole;
   text: string;
-  responseId?: string;     // from provider
+  responseId?: string; // from provider
   createdAt: number;
   model?: string;
   provider?: ProviderKey;

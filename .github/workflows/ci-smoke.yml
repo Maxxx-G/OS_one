@@ -3,7 +3,7 @@ name: CI Smoke
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   type-and-routes:

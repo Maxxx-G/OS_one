@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     method: req.method,
     headers: {
       authorization: (req.headers.authorization as string) || '',
-      'content-type': 'application/json'
+      'content-type': 'application/json',
     },
     body: req.method === 'POST' ? JSON.stringify(req.body ?? {}) : undefined,
   });

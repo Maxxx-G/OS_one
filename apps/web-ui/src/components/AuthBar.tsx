@@ -24,11 +24,14 @@ export const AuthBar: React.FC = () => {
       />
       <button
         className="border rounded px-2 py-1"
-        onClick={() => { setUserId(id.trim()); setToken(tk.trim()); }}
+        onClick={() => {
+          setUserId(id.trim());
+          setToken(tk.trim());
+        }}
         title="Save to localStorage and hydrate globals for DB adapter"
       >
         Apply
       </button>
     </div>
   );
-}
+};

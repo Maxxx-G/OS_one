@@ -4,7 +4,7 @@ export async function supabaseRest(
   table: string,
   method: Method,
   req: Request,
-  body?: any
+  body?: any,
 ) {
   const auth = req.headers.get('authorization'); // "Bearer <user_jwt>"
   if (!auth) {
@@ -12,10 +12,10 @@ export async function supabaseRest(
   }
   const url = `${urlBase}/rest/v1/${table}`;
   const headers: Record<string, string> = {
-    'Authorization': auth,
+    Authorization: auth,
     'Content-Type': 'application/json',
     'Accept-Profile': 'public', // schema
-    'Prefer': 'return=representation'
+    Prefer: 'return=representation',
   };
   const qs = method === 'GET' ? '?select=*&order=created_at.asc' : '';
   const r = await fetch(url + qs, {

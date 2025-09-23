@@ -17,7 +17,9 @@ function flush() {
   if (typeof window === 'undefined') return;
   const obj: Record<string, Thread> = {};
   for (const [id, t] of memory.entries()) obj[id] = t;
-  try { window.localStorage.setItem(KEY, JSON.stringify(obj)); } catch {}
+  try {
+    window.localStorage.setItem(KEY, JSON.stringify(obj));
+  } catch {}
 }
 
 load();

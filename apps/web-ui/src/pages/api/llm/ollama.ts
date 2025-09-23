@@ -19,11 +19,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { model = body?.meta?.model || 'llama3', prompt = '', stream = true } = body || {};
 
   // Normalize to Ollama generate endpoint (works with Open-WebUI's compatibility layer)
-  const url = `${base.replace(/\/+$/,'')}/api/generate`;
+  const url = `${base.replace(/\/+$/, '')}/api/generate`;
   const upstream = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, prompt, stream })
+    body: JSON.stringify({ model, prompt, stream }),
   });
 
   if (!stream) {
@@ -36,8 +36,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.writeHead(200, {
     'Content-Type': 'text/event-stream; charset=utf-8',
     'Cache-Control': 'no-cache, no-transform',
-    'Connection': 'keep-alive',
-    'Transfer-Encoding': 'chunked'
+    Connection: 'keep-alive',
+    'Transfer-Encoding': 'chunked',
   });
 
   const reader = (upstream.body as any).getReader();
@@ -62,7 +62,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             res.end();
             return;
           }
-        } catch { /* ignore parse errors */ }
+        } catch {
+          /* ignore parse errors */
+        }
       }
     }
   } catch (e) {

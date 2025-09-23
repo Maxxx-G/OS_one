@@ -1,7 +1,11 @@
 import type { Provider, ProviderRequest, ProviderResponse, StreamChunk } from './types';
 
 async function postJSON(url: string, body: any) {
-  const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
   if (!r.ok) throw new Error(`Proxy error: ${r.status}`);
   return r;
 }
@@ -23,7 +27,7 @@ export const OpenAIResponses: Provider = {
       const parts = buffer.split('\n\n');
       buffer = parts.pop() || '';
       for (const evt of parts) {
-        const line = evt.split('\n').find(l => l.startsWith('data:'));
+        const line = evt.split('\n').find((l) => l.startsWith('data:'));
         if (!line) continue;
         const payload = line.slice(5).trim();
         if (payload === '[DONE]') {

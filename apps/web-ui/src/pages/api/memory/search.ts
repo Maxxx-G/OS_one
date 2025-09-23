@@ -2,8 +2,12 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 async function json(req: NextApiRequest) {
   try {
-    return JSON.parse(req.body && typeof req.body === 'string' ? req.body : JSON.stringify(req.body || '{}'));
-  } catch { return {}; }
+    return JSON.parse(
+      req.body && typeof req.body === 'string' ? req.body : JSON.stringify(req.body || '{}'),
+    );
+  } catch {
+    return {};
+  }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -17,10 +21,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { q = '', topk = 3 } = await json(req);
   const headers = {
-    'Authorization': auth,
+    Authorization: auth,
     'Content-Type': 'application/json',
     'Accept-Profile': 'public',
-    'Prefer': 'return=representation'
+    Prefer: 'return=representation',
   };
 
   // Episodic: latest messages containing q (simple ilike), newest first
@@ -55,7 +59,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const [episodic, semantic, profileRows] = await Promise.all([
-    episodicRes.json(), semanticRes.json(), profileRes.json()
+    episodicRes.json(),
+    semanticRes.json(),
+    profileRes.json(),
   ]);
 
   const profile = Array.isArray(profileRows) && profileRows.length ? profileRows[0] : null;

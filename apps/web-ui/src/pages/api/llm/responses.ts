@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     toolChoice = 'none',
     toolBudget = 0,
     thread = { store: false, previousId: null },
-    stream = true
+    stream = true,
   } = body || {};
 
   const payload: any = {
@@ -43,10 +43,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const upstream = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ ...payload, stream })
+    body: JSON.stringify({ ...payload, stream }),
   });
 
   if (!stream) {
@@ -58,8 +58,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.writeHead(200, {
     'Content-Type': 'text/event-stream; charset=utf-8',
     'Cache-Control': 'no-cache, no-transform',
-    'Connection': 'keep-alive',
-    'Transfer-Encoding': 'chunked'
+    Connection: 'keep-alive',
+    'Transfer-Encoding': 'chunked',
   });
 
   const reader = (upstream.body as any).getReader();

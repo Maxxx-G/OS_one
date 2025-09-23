@@ -1,9 +1,10 @@
 export type VoiceState = 'idle' | 'listening' | 'error';
 
 export const useVoice = () => {
-  const Recognition = (typeof window !== 'undefined')
-    ? ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
-    : null;
+  const Recognition =
+    typeof window !== 'undefined'
+      ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+      : null;
 
   let rec: any = null;
   let onResultCb: ((t: string, final: boolean) => void) | null = null;
@@ -22,14 +23,22 @@ export const useVoice = () => {
         onResultCb && onResultCb(txt, isFinal);
       }
     };
-    rec.onerror = (_e: any) => { /* swallow, UI handles */ };
+    rec.onerror = (_e: any) => {
+      /* swallow, UI handles */
+    };
     rec.start();
     return { ok: true };
   };
 
-  const stop = () => { try { rec?.stop(); } catch {} };
+  const stop = () => {
+    try {
+      rec?.stop();
+    } catch {}
+  };
 
-  const onResult = (fn: (t: string, final: boolean) => void) => { onResultCb = fn; };
+  const onResult = (fn: (t: string, final: boolean) => void) => {
+    onResultCb = fn;
+  };
 
   const supported = !!Recognition;
   return { start, stop, onResult, supported };

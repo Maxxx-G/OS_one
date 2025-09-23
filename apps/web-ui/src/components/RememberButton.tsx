@@ -4,7 +4,7 @@ import { scoreSalience } from '../lib/salience';
 
 export const RememberButton: React.FC<{ prompt: string; text: string }> = ({ prompt, text }) => {
   const { userId, token } = useAuth();
-  const [status, setStatus] = useState<'idle'|'saving'|'saved'|'err'>('idle');
+  const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'err'>('idle');
   const [lastScore] = useState<number>(() => scoreSalience({ prompt, output: text }));
 
   const onRemember = async () => {
@@ -12,14 +12,14 @@ export const RememberButton: React.FC<{ prompt: string; text: string }> = ({ pro
     setStatus('saving');
     const res = await fetch('/api/memory/write', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({
         user_id: userId,
         title: (prompt || text).slice(0, 80),
         content: text,
         tags: ['manual'],
-        salience: lastScore
-      })
+        salience: lastScore,
+      }),
     });
     setStatus(res.ok ? 'saved' : 'err');
   };

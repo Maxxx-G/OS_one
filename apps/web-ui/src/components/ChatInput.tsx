@@ -20,7 +20,9 @@ export const ChatInput: React.FC = () => {
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="Type a prompt… (uses current provider/model)"
         />
-        <button className="border rounded px-3 py-2" type="submit">Send</button>
+        <button className="border rounded px-3 py-2" type="submit">
+          Send
+        </button>
       </form>
       <div className="text-sm text-gray-500">
         <span className="font-medium">Last output:</span> {output || '—'}
