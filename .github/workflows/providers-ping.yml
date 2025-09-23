@@ -1,0 +1,64 @@
+name: Providers Ping
+
+on:
+  pull_request:
+  push:
+    branches: [ main, develop, "**/ci/**", "**/codex/**" ]
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OLLAMA_BASE: ${{ secrets.OLLAMA_BASE }}
+      OPENWEBUI_BASE: ${{ secrets.OPENWEBUI_BASE }}
+      NEXT_PUBLIC_SUPABASE_URL: "http://localhost" # mute db features during smoke
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install (web-ui only)
+        working-directory: apps/web-ui
+        run: npm ci
+
+      - name: Build WebUI
+        working-directory: apps/web-ui
+        run: npm run build
+
+      - name: Start WebUI (background)
+        working-directory: apps/web-ui
+        run: |
+          npx next start -p 3000 &
+          echo $! > webui.pid
+          sleep 3
+
+      - name: Ping OpenAI Responses (if key present)
+        if: ${{ env.OPENAI_API_KEY != '' }}
+        run: |
+          code='{"prompt":"ping","meta":{"model":"gpt-5-mini"},"stream":false}'
+          curl -sS -X POST -H "Content-Type: application/json" \
+            http://localhost:3000/api/llm/responses \
+            -d "$code" | grep -q '"text"' && echo "OK: responses" || (echo "WARN: responses no text" && exit 1)
+
+      - name: Ping Ollama/Open-WebUI (if base present)
+        if: ${{ env.OLLAMA_BASE != '' || env.OPENWEBUI_BASE != '' }}
+        run: |
+          code='{"prompt":"ping","meta":{"model":"llama3"},"stream":false}'
+          curl -sS -X POST -H "Content-Type: application/json" \
+            http://localhost:3000/api/llm/ollama \
+            -d "$code" | grep -q '"text"' && echo "OK: ollama" || (echo "WARN: ollama no text" && exit 1)
+
+      - name: Skip notice (no providers configured)
+        if: ${{ env.OPENAI_API_KEY == '' && env.OLLAMA_BASE == '' && env.OPENWEBUI_BASE == '' }}
+        run: |
+          echo "::notice title=Providers Ping::No providers configured; skipping smoke."
+
+      - name: Stop WebUI
+        if: always()
+        run: |
+          kill $(cat apps/web-ui/webui.pid) 2>/dev/null || true
