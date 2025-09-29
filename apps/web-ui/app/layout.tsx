@@ -28,9 +28,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <LeftNav />
               </aside>
               <main aria-label="Main Work Area" className="main-pane">
-                {/* Phase-1: default chat pane; keep {children} for routes */}
-                <ChatPane />
-                {children}
+                <section className="main-card" aria-label="Chat workspace">
+                  <div className="message-list" id="chat-scroll-region">
+                    {/* Phase-1: default chat pane; keep {children} for routes */}
+                    <ChatPane />
+                    {children}
+                  </div>
+                  <footer className="composer" role="region" aria-label="Composer">
+                    <div className="row">
+                      <textarea className="input" placeholder="Get a detailed report"></textarea>
+                      <button type="button" className="btn">
+                        Send
+                      </button>
+                    </div>
+                  </footer>
+                </section>
               </main>
               <aside aria-label="Right Controls" className="rail right-rail">
                 <RightPane />
