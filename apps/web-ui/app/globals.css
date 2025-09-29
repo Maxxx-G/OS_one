@@ -1,0 +1,101 @@
+:root {
+  --bg: #ffffff;
+  --fg: #111111;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  padding: 0;
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Arial,
+    sans-serif;
+}
+.prose h1 {
+  font-size: 1.5rem;
+  margin: 0 0 0.5rem 0;
+}
+.prose p {
+  margin: 0.25rem 0;
+}
+/* Ensure rails don't stretch weirdly on small screens */
+@media (max-width: 1279px) {
+  [aria-label='OS One 3-pane grid'] {
+    grid-template-columns: 240px 1fr 320px;
+  }
+}
+/* ---------- Phase-1 shell polishing ---------- */
+.os-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 8px 16px;
+}
+.os-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr 360px;
+  gap: 24px;
+  align-items: start;
+}
+.rail {
+  position: sticky;
+  top: 12px;
+  height: calc(100dvh - 24px);
+  overflow: auto;
+}
+.main-pane {
+  min-height: 60vh;
+}
+/* Cards & UI atoms */
+.card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #fff;
+}
+.card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.file-row,
+.kv-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+.file-row + .file-row,
+.kv-row + .kv-row {
+  margin-top: 6px;
+}
+.input {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 0.9rem;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.btn {
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}

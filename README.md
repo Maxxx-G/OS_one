@@ -181,7 +181,7 @@ Troubleshooting
 
 - **Project Plan (latest)** → [`docs/plans/OS1-PLAN.v2025.09.17.md`](docs/plans/OS1-PLAN.v2025.09.17.md)
 - **Project Plan Template (agent-facing)** → [`docs/templates/OS1-PROJ-TEMPLATE.v2025.09.17.md`](docs/templates/OS1-PROJ-TEMPLATE.v2025.09.17.md)
-- **Codex “Single Task Block” Template & Policies** → [`docs/templates/CODEX-SINGLE-TASK-BLOCK.v2025.09.17.md`](docs/templates/CODEX-SINGLE-TASK-BLOCK.v2025.09.17.md)
+- **Codex “Single Task Block” Template & Policies** → [`docs/templates/user.chatgpt5.os1p1.codex-single-task-block.v2025.09.17.md`](docs/templates/user.chatgpt5.os1p1.codex-single-task-block.v2025.09.17.md)
 
 > Treat the plan as the **single source of truth**. All new work orders must follow the Codex single-block format.
 
@@ -195,7 +195,7 @@ Troubleshooting
 
 ## How to File a Single Task Block (Codex)
 
-- Start from the template: [`CODEX-SINGLE-TASK-BLOCK.v2025.09.17.md`](docs/templates/CODEX-SINGLE-TASK-BLOCK.v2025.09.17.md)
+- Start from the template: [`user.chatgpt5.os1p1.codex-single-task-block.v2025.09.17.md`](docs/templates/user.chatgpt5.os1p1.codex-single-task-block.v2025.09.17.md)
 - Keep scope ≤5–7 files. Prefer append-only edits. Declare runtime for new API routes.
 - Always add a **README** note for how to run/verify, and an **Acceptance** section.
 - Example skeleton (replace everything with real content):
@@ -268,3 +268,26 @@ Project plan now explicitly references governing templates for execution, planni
 - Recommended test:
   - `docker compose --profile local-ollama up -d --build` (works even though ollama no longer requires a profile)
   - Verify services: ollama, archon-api, archon-ui, bmad all running on `osone-net`.
+
+### Stability / Guardrails
+
+- Dotted template naming: segments use dots; multi-word segments use hyphens within a segment.
+
+### Filename Policy (Dotted Convention)
+
+- Pattern: `assistant.agent.project.purpose.vMM.mm.ext` or `assistant.agent.project.purpose.vYYYY.MM.DD.ext`
+- Dots separate segments; use **hyphens inside multi-word segments**.
+- Check staged files: `npm run namecheck`
+- Manual sweep (docs & kb): `npm run namecheck:docs`
+- Optional local hook: see `.githooks/pre-commit.sample`
+
+### Agent Toolbar & Direct Mode
+
+- Toolbar shows the active agent badge, quick-switch buttons, and Direct Agent toggle (default OFF).
+- Safety: Direct Agent toggle preserves local redaction and Sec-Comms guard even when enabled.
+
+### First Chat Readiness
+
+- Status chip cycles Idle -> OK/Degraded/Offline based on the latest quick test latency.
+- Click **Test** to send a redacted `hello` through the current agent path without touching history.
+- Quick Test respects Direct Agent defaults and resets automatically on provider/model changes.

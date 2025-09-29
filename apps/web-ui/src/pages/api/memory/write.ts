@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { redactText } from '../../../lib/redact';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -11,6 +12,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { user_id, title, content, tags = [], salience = 0.0 } = req.body || {};
   if (!user_id || !content) return res.status(400).json({ error: 'user_id and content required' });
 
+  const redactionEnabled = process.env.OS1_REDACT_MEMORY !== 'off';
+  const safe = redactionEnabled ? redactText(content ?? '').text : (content ?? '');
+
   const r = await fetch(`${base}/rest/v1/semantic_memories`, {
     method: 'POST',
     headers: {
@@ -19,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       'Accept-Profile': 'public',
       Prefer: 'return=representation',
     },
-    body: JSON.stringify([{ user_id, title, content, tags, salience }]),
+    body: JSON.stringify([{ user_id, title, content: safe, tags, salience }]),
   });
 
   const ok = r.ok;

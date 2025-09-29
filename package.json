@@ -1,5 +1,21 @@
 {
+  "scripts": {
+    "dev": "npm --prefix apps/web-ui run dev",
+    "build": "npm --prefix apps/web-ui run build",
+    "start": "npm --prefix apps/web-ui run start",
+    "lint": "npm --prefix apps/web-ui run lint || echo no-lint",
+    "fmt": "prettier -w .",
+    "fmt:check": "prettier -c .",
+    "namecheck": "node scripts/check-names.mjs --staged",
+    "namecheck:docs": "node scripts/check-names.mjs --docs",
+    "verify:encoding": "node scripts/verify-encoding.mjs",
+    "verify": "node scripts/verify-phase1.mjs && prettier -c \"apps/web-ui/**/*.{ts,tsx,css,md}\" && npm run verify:encoding",
+    "fmt:seccomms": "prettier -w \"apps/web-ui/src/components/SeccommsSwitch.tsx\" \"apps/web-ui/src/lib/redact.ts\" \"apps/web-ui/src/lib/videoRedactor.ts\" \"apps/web-ui/src/pages/api/llm/responses.ts\" \"apps/web-ui/src/pages/api/seccomms/sdp.ts\" \"apps/web-ui/src/server/seccommsGuard.ts\" \"apps/web-ui/src/state/SeccommsContext.tsx\"",
+    "snapshot:phase1": "node scripts/snapshot-phase1.mjs",
+    "pre-release:phase1": "npm run verify && npm run snapshot:phase1"
+  },
   "devDependencies": {
+    "@types/node": "^24.5.2",
     "prettier": "^3.6.2",
     "prettier-plugin-packagejson": "^2.5.19"
   }
