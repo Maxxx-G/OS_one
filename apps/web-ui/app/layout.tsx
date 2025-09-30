@@ -6,6 +6,7 @@ import AgentToolbar from '@/components/AgentToolbar';
 import LeftNav from '@/components/LeftNav';
 import RightPane from '@/components/RightPane';
 import ChatPane from '@/components/ChatPane';
+import AlphaSort from '@/components/AlphaSort';
 
 // NOTE: UI skeleton aligns with design drafts located at:
 // D:\\OS_One\\kb\\design\\ui_ux\\drafts
@@ -24,7 +25,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {/* 3-pane shell: left 280 / center / right 360 */}
           <div className="os-container">
             <div className="os-grid" aria-label="OS One 3-pane grid">
+              {/* left navigation rail (styled). 
+                  To sort any button/link list alphabetically, wrap the list in an element with data-sort="alpha". */}
               <aside aria-label="Left Navigation" className="rail left-rail">
+                {/* example (optional): <div data-sort="alpha">{...buttons/links...}</div> */}
+                {/* existing left rail contents remain */}
                 <LeftNav />
               </aside>
               <main aria-label="Main Work Area" className="main-pane">
@@ -36,7 +41,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   </div>
                   <footer className="composer" role="region" aria-label="Composer">
                     <div className="row">
-                      <textarea className="input" placeholder="Get a detailed report"></textarea>
+                      <textarea
+                        className="input"
+                        placeholder="Get a detailed report"
+                        aria-label="Message composer"
+                      ></textarea>
                       <button type="button" className="btn">
                         Send
                       </button>
@@ -49,6 +58,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </aside>
             </div>
           </div>
+          {/* mount helpers */}
+          <AlphaSort />
         </Providers>
       </body>
     </html>

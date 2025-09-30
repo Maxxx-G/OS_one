@@ -99,28 +99,31 @@ body {
   padding: 6px 10px;
   font-size: 0.85rem;
 }
-/* ---------- Phase-1 rails & center framing ---------- */
+/* ---------- Phase-1 UI tidy ---------- */
+/* Softer rails + content spacing */
 .left-rail {
   position: sticky;
   top: 12px;
   align-self: start;
   background: #fafafa;
-  border-right: 1px solid #e5e7eb; /* gray-200 */
-  padding: 12px;
-  min-height: calc(100dvh - 24px);
+  border-right: 1px solid #e5e7eb;
+  padding: 10px; /* was 12 */
+  gap: 8px; /* subtle spacing between groups */
 }
 .left-rail .nav-group {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 .left-rail .nav-item {
   display: block;
   padding: 6px 8px;
   border-radius: 6px;
   text-decoration: none;
+  border: 1px solid #eef2f7; /* very light outline to reduce button "weight" */
+  background: #ffffff;
 }
 .left-rail .nav-item:hover {
-  background: #f1f5f9;
-} /* slate-100 */
+  background: #f6f8fb;
+}
 
 .main-card {
   border-left: 1px solid #e5e7eb;
@@ -132,11 +135,12 @@ body {
   flex-direction: column;
 }
 
+/* Prevent sticky composer from covering last messages */
 .message-list {
   flex: 1 1 auto;
   overflow: auto;
-  padding: 12px 16px;
-}
+  padding: 12px 16px 64px;
+} /* +bottom pad */
 
 .composer {
   border-top: 1px solid #e5e7eb;
@@ -144,6 +148,7 @@ body {
   position: sticky;
   bottom: 0;
   background: #ffffff;
+  z-index: 1; /* sit above content/tooltips */
 }
 .composer .row {
   display: flex;
@@ -166,4 +171,30 @@ body {
 .composer .btn:hover {
   background: #f1f5f9;
 }
-/* ---------- end rails & center framing ---------- */
+
+/* Utility: de-emphasize dense right-rail lists (files/values) */
+.rail.right .panel {
+  border: 1px solid #eef2f7;
+  border-radius: 8px;
+  padding: 8px;
+  background: #fff;
+}
+.rail.right .panel h3 {
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+.rail.right .item {
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid #f1f5f9;
+}
+.rail.right .item + .item {
+  margin-top: 4px;
+}
+
+/* Alpha-sort hint class (purely semantic; behavior in client script) */
+[data-sort='alpha'] {
+  /* marks containers for alphabetical sorting - no visual styles needed */
+}
+
+/* ---------- end tidy ---------- */
