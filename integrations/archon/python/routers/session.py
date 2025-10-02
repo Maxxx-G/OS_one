@@ -4,6 +4,8 @@ import time
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from store.session_store import SessionStore
+
 router = APIRouter(prefix="/v1/session", tags=["session"])
 
 
@@ -12,13 +14,14 @@ class Session(BaseModel):
     agent: str = "OpenAI [ext]"
 
 
-STATE = Session()
+_STORE = SessionStore()
+_STATE = Session(**_STORE.load())
 
 
 @router.get("")
 def get_session():
     """Return the current session state with a unix timestamp."""
-    return {"mode": STATE.mode, "agent": STATE.agent, "ts": int(time.time())}
+    return {"mode": _STATE.mode, "agent": _STATE.agent, "ts": int(time.time())}
 
 
 class Patch(BaseModel):
@@ -29,8 +32,9 @@ class Patch(BaseModel):
 @router.post("")
 def update_session(payload: Patch):
     if payload.mode is not None:
-        STATE.mode = payload.mode
+        _STATE.mode = payload.mode
     if payload.agent is not None:
-        STATE.agent = payload.agent
-    print(f"[archon][session] mode={STATE.mode} agent={STATE.agent}")
-    return {"ok": True, "mode": STATE.mode, "agent": STATE.agent}
+        _STATE.agent = payload.agent
+    _STORE.save({"mode": _STATE.mode, "agent": _STATE.agent})
+    print(f"[archon][session] mode={_STATE.mode} agent={_STATE.agent}")
+    return {"ok": True, "mode": _STATE.mode, "agent": _STATE.agent}
