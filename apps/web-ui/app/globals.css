@@ -1100,3 +1100,80 @@ body {
 .reasoning-btn:active {
   background: #1d4ed8;
 }
+
+/* ---------- Voice HUD Legend & Hotkey Hints ---------- */
+.voice-legend {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.voice-legend-text {
+  font-weight: 500;
+}
+
+.voice-legend-btn {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #d1d5db;
+  border-radius: 50%;
+  background: white;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.voice-legend-btn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.voice-hotkey-hints {
+  position: fixed;
+  top: 52px;
+  right: 24px;
+  z-index: 998;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 140px;
+}
+
+.hint-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.813rem;
+}
+
+.hint-item kbd {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #374151;
+  min-width: 52px;
+  text-align: center;
+}
+
+.hint-item span {
+  color: #6b7280;
+}
