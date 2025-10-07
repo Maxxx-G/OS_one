@@ -3,6 +3,7 @@ import { useVoice } from '../hooks/useVoice';
 import { useChatRun } from '../hooks/useChatRun';
 import VoiceLoop from './VoiceLoop';
 import ConfirmCenter from './ConfirmCenter';
+import VoiceMetricsPanel from './VoiceMetricsPanel';
 import { useVoiceLoop } from '../state/voiceLoop';
 import { useOverwatch } from '../../store/overwatch';
 import { initSecCommsDevAck } from '../../lib/seccomms/devAck';
@@ -318,6 +319,9 @@ export const VoiceBar: React.FC = () => {
                     ⟳
                   </button>
                 </div>
+                
+                {/* Metrics Panel Toggle */}
+                <VoiceMetricsPanel />
               </>
             )}
           </div>

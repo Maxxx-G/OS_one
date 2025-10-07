@@ -16,10 +16,12 @@ import {
   recordFallbackCall,
   extendCooldown,
 } from '../lib/voice/ttsAdaptive';
+import { addMetric } from '../lib/voice/voiceMetrics';
 
 const AURL = process.env.NEXT_PUBLIC_ARCHON_URL || 'http://localhost:7700';
 
 async function transcribeBlob(blob: Blob, attempt = 0): Promise<{ ok: boolean; text?: string; error?: string }> {
+  const startTime = Date.now();
   const fd = new FormData();
   fd.append('file', blob, 'speech.wav');
   const ac = new AbortController();
@@ -31,6 +33,8 @@ async function transcribeBlob(blob: Blob, attempt = 0): Promise<{ ok: boolean; t
     if (!r.ok || json?.ok === false) {
       throw new Error(json?.error || `stt_error_${r.status}`);
     }
+    const latency = Date.now() - startTime;
+    addMetric({ type: 'stt', latency_ms: latency, retry_count: attempt });
     return json;
   } catch (err) {
     clearTimeout(timeout);
@@ -176,6 +180,7 @@ export default function ChatSequencer({ children }: { children?: React.ReactNode
 
   // Helper: TTS fallback (non-stream)
   const speakFallback = useCallback(async (text: string): Promise<boolean> => {
+    const startTime = Date.now();
     try {
       const fallbackRes = await fetch(`${AURL}/v1/audio/tts`, {
         method: 'POST',
@@ -189,10 +194,14 @@ export default function ChatSequencer({ children }: { children?: React.ReactNode
         const audio = new Audio(url);
         await audio.play().catch(() => {});
         audio.onended = () => URL.revokeObjectURL(url);
+        const latency = Date.now() - startTime;
+        addMetric({ type: 'tts_fallback', latency_ms: latency, outcome: 'ok' });
         return true;
       }
+      addMetric({ type: 'tts_fallback', outcome: 'fail' });
     } catch (err) {
       console.warn('TTS fallback also failed:', err);
+      addMetric({ type: 'tts_fallback', outcome: 'fail' });
     }
     return false;
   }, []);
@@ -200,6 +209,8 @@ export default function ChatSequencer({ children }: { children?: React.ReactNode
   const speakStream = useCallback(
     async (text: string): Promise<boolean> => {
       if (!text) return false;
+      
+      const startTime = Date.now();
       
       // Check if adaptive mode says skip stream
       if (shouldSkipStream()) {
@@ -255,10 +266,13 @@ export default function ChatSequencer({ children }: { children?: React.ReactNode
 
         logAudit('voice-online', { via: 'tts-stream', ok: true });
         recordStreamSuccess(); // Reset adaptive state on success
+        const latency = Date.now() - startTime;
+        addMetric({ type: 'tts_stream', latency_ms: latency, outcome: 'ok' });
         return true;
       } catch (err) {
         console.warn('speakStream fallback:', err);
         recordStreamFailure(); // Track failure for adaptive mode
+        addMetric({ type: 'tts_stream', outcome: 'fail' });
         setGlobalVoiceStatus('idle');
         setVoiceStatus({ ttsActive: false });
         window.dispatchEvent(new Event('os1:tts:disabled'));

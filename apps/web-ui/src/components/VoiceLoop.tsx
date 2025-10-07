@@ -7,6 +7,7 @@ import { performVoiceAction } from '../../lib/voice/actions';
 import { fetchWithRetry } from '../../lib/net/retry';
 import { addLog } from '../../lib/voice/actionLog';
 import { detectFollowUp } from '../../lib/voice/followUpDetector';
+import { addMetric } from '../../lib/voice/voiceMetrics';
 
 /**
  * VoiceLoop orchestrator component.
@@ -81,10 +82,12 @@ export default function VoiceLoop() {
 
             if (!confirmed) {
               addLog({ ts: Date.now(), intent, transcript, result: 'cancel' });
+              addMetric({ type: 'confirm', outcome: 'cancel' });
               setPhase('idle');
               processingRef.current = false;
               return;
             }
+            addMetric({ type: 'confirm', outcome: 'ok' });
           }
 
           const actionResult = await performVoiceAction(intent, transcript);
