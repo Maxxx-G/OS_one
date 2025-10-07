@@ -12,7 +12,7 @@ import {
 
 const AURL = process.env.NEXT_PUBLIC_ARCHON_URL || 'http://localhost:7700';
 
-async function transcribeBlob(blob: Blob) {
+async function transcribeBlob(blob: Blob, attempt = 0): Promise<{ ok: boolean; text?: string; error?: string }> {
   const fd = new FormData();
   fd.append('file', blob, 'speech.wav');
   const ac = new AbortController();
@@ -27,7 +27,14 @@ async function transcribeBlob(blob: Blob) {
     return json;
   } catch (err) {
     clearTimeout(timeout);
-    console.warn('[STT] transcribe failed:', err);
+    const maxRetries = 2;
+    if (attempt < maxRetries) {
+      const backoffMs = attempt === 0 ? 400 : 900;
+      console.warn(`[STT] transcribe failed (attempt ${attempt + 1}/${maxRetries + 1}), retrying in ${backoffMs}ms:`, err);
+      await new Promise((resolve) => setTimeout(resolve, backoffMs));
+      return transcribeBlob(blob, attempt + 1);
+    }
+    console.warn('[STT] transcribe failed after all retries:', err);
     return { ok: false, error: 'stt_unavailable' } as const;
   }
 }
