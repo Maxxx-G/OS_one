@@ -5,6 +5,7 @@ import VoiceLoop from './VoiceLoop';
 import ConfirmCenter from './ConfirmCenter';
 import { useVoiceLoop } from '../state/voiceLoop';
 import { useOverwatch } from '../../store/overwatch';
+import { initSecCommsDevAck } from '../../lib/seccomms/devAck';
 
 const VOICE_LOOP_ON = process.env.NEXT_PUBLIC_VOICE_LOOP === '1';
 const MODEL_NAME = process.env.DEEPSEEK_MODEL || 'deepseek-r1:8b';
@@ -39,6 +40,16 @@ export const VoiceBar: React.FC = () => {
     if (VOICE_LOOP_ON) {
       pingHealth();
     }
+  }, []);
+
+  // Initialize SEC-COMMS dev auto-ack for localhost
+  useEffect(() => {
+    const dispose = initSecCommsDevAck();
+    return () => {
+      if (typeof dispose === 'function') {
+        dispose();
+      }
+    };
   }, []);
 
   useEffect(() => {
