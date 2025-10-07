@@ -1,6 +1,7 @@
 import React from 'react';
 import './globals.css';
 import type { Metadata } from 'next';
+import GlobalClient from './GlobalClient';
 import { Providers } from './providers';
 import AgentToolbar from '@/components/AgentToolbar';
 import LeftNav from '@/components/LeftNav';
@@ -27,6 +28,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
+        {/* Global client shim mounts first to run SEC-COMMS dev auto-ack before any interactive components */}
+        <GlobalClient />
         <Providers>
           <SessionProvider>
             <AgentToolbar />
