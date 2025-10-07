@@ -12,10 +12,13 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
+from store.prefs_store import PrefsStore
+
 logger = logging.getLogger("archon.audio")
 
 router = APIRouter(prefix="/v1/audio", tags=["audio"])
 
+_PREFS_STORE = PrefsStore()
 _WHISPER_MODEL_NAME = os.getenv("WHISPER_MODEL", "tiny")
 _WHISPER_MODEL: Optional["WhisperModel"] = None
 _TTS_TIMEOUT = httpx.Timeout(60.0, connect=10.0)
@@ -23,6 +26,26 @@ _MULTIPART_AVAILABLE = importlib.util.find_spec("multipart") is not None
 
 if _MULTIPART_AVAILABLE:
     from fastapi import File, UploadFile
+
+
+@router.get("/status")
+async def audio_status():
+    """
+    Return the current audio service status, including TTS and STT availability.
+    """
+    api_key = os.getenv("ELEVENLABS_API_KEY", "").strip()
+    tts_enabled = bool(api_key)
+    
+    prefs = _PREFS_STORE.load()
+    voice_id = prefs.get("tts_voice_id") or os.getenv("ELEVENLABS_VOICE_ID", "Rachel")
+    
+    return {
+        "ok": True,
+        "tts_enabled": tts_enabled,
+        "stt_enabled": _MULTIPART_AVAILABLE,
+        "voice_id": voice_id,
+        "ts": int(time.time() * 1000),
+    }
 
 
 def _load_whisper_model():
@@ -100,7 +123,8 @@ async def text_to_speech(payload: TtsRequest):
     if not text:
         return JSONResponse({"ok": False, "error": "empty_text"}, status_code=400)
 
-    voice_id = (payload.voice_id or os.getenv("ELEVENLABS_VOICE_ID", "Rachel")).strip()
+    prefs = _PREFS_STORE.load()
+    voice_id = (payload.voice_id or prefs.get("tts_voice_id") or os.getenv("ELEVENLABS_VOICE_ID", "Rachel")).strip()
     if not voice_id:
         return JSONResponse({"ok": False, "error": "voice_id_missing"}, status_code=400)
 
