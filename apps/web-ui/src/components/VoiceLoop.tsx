@@ -21,6 +21,8 @@ export default function VoiceLoop() {
     setReply,
     setIntent,
     setError,
+    pendingQuestion,
+    setPendingQuestion,
   } = useVoiceLoop();
 
   const processingRef = useRef(false);
@@ -101,7 +103,11 @@ export default function VoiceLoop() {
         const res = await fetchWithRetry('/api/voice/reason', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ transcript, intent }),
+          body: JSON.stringify({ 
+            transcript, 
+            intent,
+            previousQuestion: pendingQuestion, // Pass follow-up context
+          }),
         }, { timeoutMs: 8000, retries: 2, baseDelayMs: 300 });
 
         const data = await res.json();
@@ -111,7 +117,7 @@ export default function VoiceLoop() {
         }
 
         setThought(data.thought || '');
-        setReply(data.reply || '');
+        setReply(data.reply || ''); // This will auto-detect question and update pendingQuestion
         setError(null);
 
         // Optional TTS stream
@@ -133,7 +139,7 @@ export default function VoiceLoop() {
 
     // In a real implementation, this would be called by STT result handler
     // For now, this is a placeholder
-  }, [enabled, phase, setPhase, setThought, setReply, setError]);
+  }, [enabled, phase, setPhase, setThought, setReply, setError, setIntent, pendingQuestion]);
 
   return null; // This is an invisible orchestrator component
 }

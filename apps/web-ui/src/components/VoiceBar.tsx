@@ -21,7 +21,7 @@ export const VoiceBar: React.FC = () => {
   const [health, setHealth] = useState<HealthStatus>('unknown');
   
   const voiceLoopStore = useVoiceLoop();
-  const { enabled: loopEnabled, phase: loopPhase, lastIntent } = voiceLoopStore;
+  const { enabled: loopEnabled, phase: loopPhase, lastIntent, pendingQuestion } = voiceLoopStore;
   
   const ow = useOverwatch();
 
@@ -151,6 +151,14 @@ export const VoiceBar: React.FC = () => {
                 >
                   Phase: {loopPhase}
                 </span>
+                {pendingQuestion && (
+                  <span 
+                    className="text-xs px-2 py-1 rounded bg-amber-100 text-amber-800 border border-amber-300"
+                    title={`Follow-up expected: "${pendingQuestion}"`}
+                  >
+                    🤔 Follow-up
+                  </span>
+                )}
                 {lastIntent && lastIntent !== 'none' && (
                   <span className="text-xs px-2 py-1 rounded bg-purple-100 text-purple-800">
                     Intent: {lastIntent}
