@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getLog, subscribe, type ActionLogEntry } from '../lib/voice/actionLog';
+import { getLog, subscribe, clearLog, type ActionLogEntry } from '../../lib/voice/actionLog';
 
 type ConfirmRequest = {
   id: string;
@@ -70,7 +70,17 @@ export default function ConfirmCenter() {
       {/* Action Log Panel */}
       {showLog && (
         <div className="fixed bottom-2 right-2 z-40 text-xs bg-neutral-900/95 border border-neutral-700 rounded p-3 w-[360px] max-h-[40vh] overflow-auto">
-          <div className="font-medium mb-2">Action Log</div>
+          <div className="flex justify-between items-center mb-2">
+            <div className="font-medium">Action Log</div>
+            <button
+              className="px-2 py-0.5 text-[10px] rounded bg-neutral-700 hover:bg-neutral-600"
+              onClick={() => {
+                if (confirm('Clear action log?')) clearLog();
+              }}
+            >
+              Clear
+            </button>
+          </div>
           {log.length === 0 ? (
             <div className="text-neutral-500 text-center py-2">No actions yet</div>
           ) : (
