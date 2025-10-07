@@ -9,6 +9,13 @@ import {
   setVoiceStatus as setGlobalVoiceStatus,
   isTtsEnabled as getTtsEnabled,
 } from '../lib/voice/os1Voice';
+import {
+  shouldSkipStream,
+  recordStreamFailure,
+  recordStreamSuccess,
+  recordFallbackCall,
+  extendCooldown,
+} from '../lib/voice/ttsAdaptive';
 
 const AURL = process.env.NEXT_PUBLIC_ARCHON_URL || 'http://localhost:7700';
 
@@ -167,9 +174,40 @@ export default function ChatSequencer({ children }: { children?: React.ReactNode
     (active) => setVoiceStatus({ sttActive: active }),
   );
 
+  // Helper: TTS fallback (non-stream)
+  const speakFallback = useCallback(async (text: string): Promise<boolean> => {
+    try {
+      const fallbackRes = await fetch(`${AURL}/v1/audio/tts`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      
+      if (fallbackRes.ok) {
+        const blob = await fallbackRes.blob();
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        await audio.play().catch(() => {});
+        audio.onended = () => URL.revokeObjectURL(url);
+        return true;
+      }
+    } catch (err) {
+      console.warn('TTS fallback also failed:', err);
+    }
+    return false;
+  }, []);
+
   const speakStream = useCallback(
     async (text: string): Promise<boolean> => {
       if (!text) return false;
+      
+      // Check if adaptive mode says skip stream
+      if (shouldSkipStream()) {
+        console.info('[TTS] Adaptive mode active → skip stream, use fallback only');
+        recordFallbackCall();
+        // Use fallback directly
+        return speakFallback(text);
+      }
       
       try {
         const response = await fetch(`${AURL}/v1/audio/tts/stream`, {
@@ -216,37 +254,20 @@ export default function ChatSequencer({ children }: { children?: React.ReactNode
         };
 
         logAudit('voice-online', { via: 'tts-stream', ok: true });
+        recordStreamSuccess(); // Reset adaptive state on success
         return true;
       } catch (err) {
         console.warn('speakStream fallback:', err);
+        recordStreamFailure(); // Track failure for adaptive mode
         setGlobalVoiceStatus('idle');
         setVoiceStatus({ ttsActive: false });
         window.dispatchEvent(new Event('os1:tts:disabled'));
         
-        // Fallback: non-stream TTS (if available) or silent no-op
-        try {
-          const fallbackRes = await fetch(`${AURL}/v1/audio/tts`, {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ text }),
-          });
-          
-          if (fallbackRes.ok) {
-            const blob = await fallbackRes.blob();
-            const url = URL.createObjectURL(blob);
-            const audio = new Audio(url);
-            await audio.play().catch(() => {});
-            audio.onended = () => URL.revokeObjectURL(url);
-            return true;
-          }
-        } catch (fallbackErr) {
-          console.warn('TTS fallback also failed:', fallbackErr);
-        }
-        
-        return false;
+        // Use fallback helper
+        return await speakFallback(text);
       }
     },
-    [setVoiceStatus],
+    [setVoiceStatus, speakFallback],
   );
 
   const speak = useCallback(
