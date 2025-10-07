@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "continuedev.continue",
+    "sourcegraph.cody-ai",
+    "phind.phind"
+  ],
+  "unwantedRecommendations": [
+    "github.copilot",
+    "github.copilot-chat"
+  ]
+}

@@ -1,0 +1,13 @@
+[
+  {
+    "key": "ctrl+alt+.",
+    "command": "continue.chat.submitWithPrompt",
+    "args": "/stb",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+i",
+    "command": "continue.inline.complete",
+    "when": "editorTextFocus"
+  }
+]
