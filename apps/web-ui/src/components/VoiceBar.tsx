@@ -19,6 +19,7 @@ export const VoiceBar: React.FC = () => {
   const [interim, setInterim] = useState('');
   const [finalTxt, setFinalTxt] = useState('');
   const [health, setHealth] = useState<HealthStatus>('unknown');
+  const [ttsDisabled, setTtsDisabled] = useState(false);
   
   const voiceLoopStore = useVoiceLoop();
   const { enabled: loopEnabled, phase: loopPhase, lastIntent, pendingQuestion } = voiceLoopStore;
@@ -30,6 +31,11 @@ export const VoiceBar: React.FC = () => {
       const response = await fetch('/api/voice/health');
       const data = await response.json();
       setHealth(data.llmOk && data.ttsOk ? 'good' : 'bad');
+      
+      // Auto-clear TTS disabled badge if status recovers
+      if (data.ttsOk && ttsDisabled) {
+        setTtsDisabled(false);
+      }
     } catch {
       setHealth('bad');
     }
@@ -41,6 +47,32 @@ export const VoiceBar: React.FC = () => {
       pingHealth();
     }
   }, []);
+
+  // Listen for TTS failure events
+  useEffect(() => {
+    const onTtsFailure = () => setTtsDisabled(true);
+    window.addEventListener('os1:tts:disabled', onTtsFailure);
+    return () => window.removeEventListener('os1:tts:disabled', onTtsFailure);
+  }, []);
+
+  // Periodic health check to auto-clear TTS disabled badge
+  useEffect(() => {
+    if (!ttsDisabled) return;
+    
+    const interval = setInterval(async () => {
+      try {
+        const r = await fetch(`${process.env.NEXT_PUBLIC_ARCHON_URL || 'http://localhost:7700'}/v1/audio/status`);
+        const j = await r.json();
+        if (j?.tts_enabled) {
+          setTtsDisabled(false);
+        }
+      } catch {
+        // Keep disabled state if probe fails
+      }
+    }, 5000); // Check every 5s
+    
+    return () => clearInterval(interval);
+  }, [ttsDisabled]);
 
   // Initialize SEC-COMMS dev auto-ack for localhost
   useEffect(() => {
@@ -196,6 +228,19 @@ export const VoiceBar: React.FC = () => {
       
       {VOICE_LOOP_ON && <VoiceLoop />}
       {VOICE_LOOP_ON && <ConfirmCenter />}
+      
+      {ttsDisabled && (
+        <div className="ml-4 flex items-center gap-2 px-3 py-1 bg-red-100 border border-red-300 rounded text-xs text-red-800">
+          <span>⚠️ TTS Disabled</span>
+          <button
+            onClick={() => setTtsDisabled(false)}
+            className="text-[10px] px-1 hover:underline"
+            title="Dismiss (will auto-clear when service recovers)"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 };

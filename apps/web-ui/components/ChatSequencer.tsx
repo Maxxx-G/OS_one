@@ -182,6 +182,7 @@ export default function ChatSequencer({ children }: { children?: React.ReactNode
           (window as any).os1Toast?.show?.('TTS disabled (no ElevenLabs key)');
           logAudit('voice-online', { via: 'tts-stream', muted: true, ok: false });
           setGlobalVoiceStatus('muted');
+          window.dispatchEvent(new Event('os1:tts:disabled'));
           return false;
         }
         
@@ -220,6 +221,7 @@ export default function ChatSequencer({ children }: { children?: React.ReactNode
         console.warn('speakStream fallback:', err);
         setGlobalVoiceStatus('idle');
         setVoiceStatus({ ttsActive: false });
+        window.dispatchEvent(new Event('os1:tts:disabled'));
         
         // Fallback: non-stream TTS (if available) or silent no-op
         try {
@@ -263,6 +265,7 @@ export default function ChatSequencer({ children }: { children?: React.ReactNode
           logAudit('voice-online', { via: 'tts', muted: true, ok: false });
           setGlobalVoiceStatus('muted');
           setVoiceStatus({ ttsActive: false });
+          window.dispatchEvent(new Event('os1:tts:disabled'));
           return;
         }
         if (!response.ok) {
