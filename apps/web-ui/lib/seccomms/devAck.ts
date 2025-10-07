@@ -15,6 +15,10 @@ export function initSecCommsDevAck(): (() => void) | undefined {
   const devFlag = process.env.NEXT_PUBLIC_SEC_COMMS_DEV === '1';
   if (!isLocal && !devFlag) return;
 
+  // Set global flag and dispatch init event for badge visibility
+  (window as any).__os1_seccomms_devack_active = true;
+  window.dispatchEvent(new Event('os1:seccomms:devack:init'));
+
   const ack = () => window.dispatchEvent(new Event('os1:seccomms:ack'));
 
   // Burst (microtask + two timers) to win race vs initial prompt

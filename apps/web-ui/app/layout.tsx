@@ -14,6 +14,7 @@ import ChatSequencer from '@/components/ChatSequencer';
 import VoiceOverlay from '@/components/VoiceOverlay';
 import FooterStatus from '@/components/FooterStatus';
 import ReasoningLoop from '@/components/ReasoningLoop';
+import SecCommsBadge from '../src/components/SecCommsBadge';
 import { SessionProvider } from '../lib/SessionStore';
 
 // NOTE: UI skeleton aligns with design drafts located at:
@@ -65,6 +66,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <FooterStatus />
             {/* Voice Phase 3: Reasoning loop toggle (Alt+R) */}
             <ReasoningLoop />
+            {/* SEC-COMMS dev auto-ack badge (localhost only) */}
+            <SecCommsBadge />
           </SessionProvider>
         </Providers>
       </body>
