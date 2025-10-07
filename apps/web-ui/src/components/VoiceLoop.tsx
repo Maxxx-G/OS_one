@@ -27,6 +27,26 @@ export default function VoiceLoop() {
 
   const processingRef = useRef(false);
 
+  // Helper for confirmation prompts
+  const requestConfirmation = async (message: string): Promise<boolean> => {
+    const id = Math.random().toString(36).slice(2);
+    return new Promise<boolean>((resolve) => {
+      const onResult = (e: Event) => {
+        const detail = (e as CustomEvent<{ id: string; ok: boolean }>).detail;
+        if (detail?.id === id) {
+          window.removeEventListener('os1:confirm:result', onResult as EventListener);
+          resolve(!!detail.ok);
+        }
+      };
+      window.addEventListener('os1:confirm:result', onResult as EventListener);
+      window.dispatchEvent(
+        new CustomEvent('os1:confirm:request', {
+          detail: { id, message },
+        })
+      );
+    });
+  };
+
   useEffect(() => {
     if (!enabled || phase !== 'listening' || processingRef.current) {
       return;
@@ -50,24 +70,13 @@ export default function VoiceLoop() {
         
         // Perform action if intent detected
         if (intent !== 'none') {
-          // Confirmation for destructive actions
-          if (intent === 'overwatch.pause') {
-            const id = Math.random().toString(36).slice(2);
-            const confirmed = await new Promise<boolean>((resolve) => {
-              const onResult = (e: Event) => {
-                const detail = (e as CustomEvent<{ id: string; ok: boolean }>).detail;
-                if (detail?.id === id) {
-                  window.removeEventListener('os1:confirm:result', onResult as EventListener);
-                  resolve(!!detail.ok);
-                }
-              };
-              window.addEventListener('os1:confirm:result', onResult as EventListener);
-              window.dispatchEvent(
-                new CustomEvent('os1:confirm:request', {
-                  detail: { id, message: 'Pause Overwatch monitoring now?' },
-                })
-              );
-            });
+          // Confirmation for destructive/sensitive actions
+          if (intent === 'overwatch.pause' || intent === 'overwatch.resume') {
+            const message = intent === 'overwatch.pause' 
+              ? 'Pause Overwatch monitoring now?' 
+              : 'Resume Overwatch monitoring now?';
+            
+            const confirmed = await requestConfirmation(message);
 
             if (!confirmed) {
               addLog({ ts: Date.now(), intent, transcript, result: 'cancel' });
