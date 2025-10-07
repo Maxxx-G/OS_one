@@ -42,6 +42,26 @@ export default function ConfirmCenter() {
     setRequest(null);
   }
 
+  function exportLog() {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    const filename = `os1-actionlog-${timestamp}.json`;
+    
+    const exportData = {
+      schema_version: '1.0',
+      app_version: process.env.NEXT_PUBLIC_APP_VERSION || 'dev',
+      exported_at: new Date().toISOString(),
+      entries: log.slice(0, 50), // Max 50 entries
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <>
       {/* Confirmation Modal */}
@@ -72,14 +92,24 @@ export default function ConfirmCenter() {
         <div className="fixed bottom-2 right-2 z-40 text-xs bg-neutral-900/95 border border-neutral-700 rounded p-3 w-[360px] max-h-[40vh] overflow-auto">
           <div className="flex justify-between items-center mb-2">
             <div className="font-medium">Action Log</div>
-            <button
-              className="px-2 py-0.5 text-[10px] rounded bg-neutral-700 hover:bg-neutral-600"
-              onClick={() => {
-                if (confirm('Clear action log?')) clearLog();
-              }}
-            >
-              Clear
-            </button>
+            <div className="flex gap-1">
+              <button
+                className="px-2 py-0.5 text-[10px] rounded bg-blue-700 hover:bg-blue-600 text-white"
+                onClick={exportLog}
+                disabled={log.length === 0}
+                title="Export as JSON"
+              >
+                Export
+              </button>
+              <button
+                className="px-2 py-0.5 text-[10px] rounded bg-neutral-700 hover:bg-neutral-600"
+                onClick={() => {
+                  if (confirm('Clear action log?')) clearLog();
+                }}
+              >
+                Clear
+              </button>
+            </div>
           </div>
           {log.length === 0 ? (
             <div className="text-neutral-500 text-center py-2">No actions yet</div>
