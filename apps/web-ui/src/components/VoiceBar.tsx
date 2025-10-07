@@ -9,6 +9,7 @@ import { useOverwatch } from '../../store/overwatch';
 import { initSecCommsDevAck } from '../../lib/seccomms/devAck';
 import { getVoices, invalidateVoicesCache, type Voice } from '../../lib/voice/voicesCache';
 import { fetchPolicy, getLastUpdated, clearPolicy } from '../../lib/voice/confirmationPolicy';
+import { getMemoryStats, clearMemory } from '../../lib/voice/conversationMemory';
 
 const VOICE_LOOP_ON = process.env.NEXT_PUBLIC_VOICE_LOOP === '1';
 const MODEL_NAME = process.env.DEEPSEEK_MODEL || 'deepseek-r1:8b';
@@ -27,6 +28,7 @@ export const VoiceBar: React.FC = () => {
   const [voices, setVoices] = useState<Voice[]>([]);
   const [selectedVoice, setSelectedVoice] = useState<string>('');
   const [policyLastUpdated, setPolicyLastUpdated] = useState<number | null>(null);
+  const [memoryStats, setMemoryStats] = useState({ exchangeCount: 0, turnsSinceSummary: 0, hasSummary: false, lastSummaryAt: null as number | null });
   
   const voiceLoopStore = useVoiceLoop();
   const { enabled: loopEnabled, phase: loopPhase, lastIntent, pendingQuestion, pendingTopic } = voiceLoopStore;
@@ -97,6 +99,17 @@ export const VoiceBar: React.FC = () => {
     getVoices().then(setVoices);
   }, []);
 
+  // Update memory stats periodically
+  useEffect(() => {
+    if (!VOICE_LOOP_ON) return;
+    
+    const updateStats = () => setMemoryStats(getMemoryStats());
+    updateStats(); // Initial load
+    
+    const interval = setInterval(updateStats, 3000); // Update every 3s
+    return () => clearInterval(interval);
+  }, []);
+
   // Load persisted voice selection from prefs
   useEffect(() => {
     if (!VOICE_LOOP_ON) return;
@@ -136,6 +149,13 @@ export const VoiceBar: React.FC = () => {
     clearPolicy();
     await fetchPolicy();
     setPolicyLastUpdated(getLastUpdated());
+  };
+
+  const handleClearMemory = () => {
+    if (confirm('Clear conversation memory?')) {
+      clearMemory();
+      setMemoryStats(getMemoryStats());
+    }
   };
 
   useEffect(() => {
@@ -299,6 +319,33 @@ export const VoiceBar: React.FC = () => {
                 >
                   Log
                 </button>
+                
+                {/* Memory Status Indicator */}
+                <div className="flex items-center gap-1">
+                  <span 
+                    className={`text-[10px] px-2 py-1 rounded ${
+                      memoryStats.hasSummary 
+                        ? 'bg-blue-700 text-white' 
+                        : 'bg-neutral-700 text-white'
+                    }`}
+                    title={
+                      memoryStats.lastSummaryAt 
+                        ? `${memoryStats.exchangeCount} turns, summary at ${new Date(memoryStats.lastSummaryAt).toLocaleTimeString()}` 
+                        : `${memoryStats.exchangeCount} turns (${memoryStats.turnsSinceSummary} until summary)`
+                    }
+                  >
+                    💭 {memoryStats.exchangeCount} {memoryStats.hasSummary ? '✓' : `(${memoryStats.turnsSinceSummary}/5)`}
+                  </span>
+                  {memoryStats.exchangeCount > 0 && (
+                    <button
+                      onClick={handleClearMemory}
+                      className="text-[10px] px-1 py-1 rounded bg-neutral-700 hover:bg-neutral-600"
+                      title="Clear conversation memory"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
                 
                 {/* Confirmation Policy Refresh */}
                 <button

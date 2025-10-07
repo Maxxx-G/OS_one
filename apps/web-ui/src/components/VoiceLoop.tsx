@@ -9,6 +9,7 @@ import { addLog } from '../../lib/voice/actionLog';
 import { detectFollowUp } from '../../lib/voice/followUpDetector';
 import { addMetric } from '../../lib/voice/voiceMetrics';
 import { fetchPolicy, shouldConfirmIntent, getConfirmMessage } from '../../lib/voice/confirmationPolicy';
+import { addExchange, maybeGenerateSummary, getConversationContext } from '../../lib/voice/conversationMemory';
 
 /**
  * VoiceLoop orchestrator component.
@@ -122,6 +123,8 @@ export default function VoiceLoop() {
         }
         
         // No action or action failed - fall back to LLM reasoning
+        const conversationContext = getConversationContext();
+        
         const res = await fetchWithRetry('/api/voice/reason', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -129,6 +132,7 @@ export default function VoiceLoop() {
             transcript, 
             intent,
             previousQuestion: pendingQuestion, // Pass follow-up context
+            conversation_context: conversationContext, // Pass memory context
           }),
         }, { timeoutMs: 8000, retries: 2, baseDelayMs: 300 });
 
@@ -141,6 +145,13 @@ export default function VoiceLoop() {
         setThought(data.thought || '');
         setReply(data.reply || ''); // This will auto-detect question and update pendingQuestion
         setError(null);
+
+        // Add exchange to conversation memory
+        if (data.reply) {
+          addExchange(transcript, data.reply, intent);
+          // Check if we should generate a rolling summary
+          maybeGenerateSummary().catch(err => console.warn('[VoiceLoop] Summary generation failed:', err));
+        }
 
         // Optional TTS stream
         const ttsEnabled = process.env.NEXT_PUBLIC_TTS_STREAM === '1';
