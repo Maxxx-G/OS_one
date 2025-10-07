@@ -6,9 +6,11 @@ import ConfirmCenter from './ConfirmCenter';
 import { useVoiceLoop } from '../state/voiceLoop';
 import { useOverwatch } from '../../store/overwatch';
 import { initSecCommsDevAck } from '../../lib/seccomms/devAck';
+import { getVoices, invalidateVoicesCache, type Voice } from '../../lib/voice/voicesCache';
 
 const VOICE_LOOP_ON = process.env.NEXT_PUBLIC_VOICE_LOOP === '1';
 const MODEL_NAME = process.env.DEEPSEEK_MODEL || 'deepseek-r1:8b';
+const AURL = process.env.NEXT_PUBLIC_ARCHON_URL || 'http://localhost:7700';
 
 type HealthStatus = 'unknown' | 'good' | 'bad';
 
@@ -20,6 +22,8 @@ export const VoiceBar: React.FC = () => {
   const [finalTxt, setFinalTxt] = useState('');
   const [health, setHealth] = useState<HealthStatus>('unknown');
   const [ttsDisabled, setTtsDisabled] = useState(false);
+  const [voices, setVoices] = useState<Voice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState<string>('');
   
   const voiceLoopStore = useVoiceLoop();
   const { enabled: loopEnabled, phase: loopPhase, lastIntent, pendingQuestion } = voiceLoopStore;
@@ -83,6 +87,47 @@ export const VoiceBar: React.FC = () => {
       }
     };
   }, []);
+
+  // Load voices on mount
+  useEffect(() => {
+    if (!VOICE_LOOP_ON) return;
+    getVoices().then(setVoices);
+  }, []);
+
+  // Load persisted voice selection from prefs
+  useEffect(() => {
+    if (!VOICE_LOOP_ON) return;
+    fetch(`${AURL}/v1/prefs`)
+      .then(r => r.json())
+      .then(data => {
+        if (data?.tts_voice_id) {
+          setSelectedVoice(data.tts_voice_id);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleVoiceChange = async (voiceId: string) => {
+    // Optimistic update
+    setSelectedVoice(voiceId);
+
+    // Persist to backend
+    try {
+      await fetch(`${AURL}/v1/prefs`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tts_voice_id: voiceId }),
+      });
+    } catch (err) {
+      console.warn('[VoicePicker] Failed to update pref:', err);
+    }
+  };
+
+  const refreshVoices = async () => {
+    invalidateVoicesCache();
+    const fresh = await getVoices();
+    setVoices(fresh);
+  };
 
   useEffect(() => {
     onResult((t, final) => {
@@ -220,6 +265,34 @@ export const VoiceBar: React.FC = () => {
                 >
                   Log
                 </button>
+                
+                {/* Voice Picker */}
+                <div className="flex items-center gap-1">
+                  <select
+                    value={selectedVoice}
+                    onChange={(e) => handleVoiceChange(e.target.value)}
+                    disabled={voices.length === 0}
+                    className="text-[10px] px-2 py-1 rounded bg-neutral-800 text-white border border-neutral-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={voices.length === 0 ? 'No voices available' : 'Select TTS voice'}
+                  >
+                    <option value="">Default Voice</option>
+                    {voices.map(v => (
+                      <option key={v.voice_id} value={v.voice_id}>
+                        {v.name}
+                      </option>
+                    ))}
+                  </select>
+                  {health === 'bad' && (
+                    <span className="w-2 h-2 rounded-full bg-red-500" title="TTS health warning" />
+                  )}
+                  <button
+                    onClick={refreshVoices}
+                    className="text-[10px] px-1 py-1 rounded bg-neutral-700 hover:bg-neutral-600"
+                    title="Refresh voices"
+                  >
+                    ⟳
+                  </button>
+                </div>
               </>
             )}
           </div>
