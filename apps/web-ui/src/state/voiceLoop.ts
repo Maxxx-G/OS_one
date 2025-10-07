@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { detectFollowUp } from '../../lib/voice/followUpDetector';
 
 export type VoicePhase = 'idle' | 'listening' | 'thinking' | 'speaking' | 'error';
 
@@ -12,6 +13,7 @@ export interface VoiceLoopState {
   lastIntent: string;
   error: string | null;
   pendingQuestion: string | null;
+  pendingTopic: string | null;
 }
 
 /**
@@ -26,6 +28,7 @@ export function useVoiceLoop() {
   const [lastIntent, setLastIntent] = useState('none');
   const [error, setErrorRaw] = useState<string | null>(null);
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
+  const [pendingTopic, setPendingTopic] = useState<string | null>(null);
 
   const setError = (err: string | null) => {
     setErrorRaw(err);
@@ -34,11 +37,14 @@ export function useVoiceLoop() {
 
   const setReply = (reply: string) => {
     setLastReply(reply);
-    // Detect if reply ends with question mark
-    if (reply.trim().endsWith('?')) {
+    // Use enhanced interrogative detection
+    const followUp = detectFollowUp(reply);
+    if (followUp.isQuestion) {
       setPendingQuestion(reply);
+      setPendingTopic(followUp.topic);
     } else {
       setPendingQuestion(null);
+      setPendingTopic(null);
     }
   };
 
@@ -50,6 +56,7 @@ export function useVoiceLoop() {
     setLastIntent('none');
     setErrorRaw(null);
     setPendingQuestion(null);
+    setPendingTopic(null);
   };
 
   return {
@@ -60,6 +67,7 @@ export function useVoiceLoop() {
     lastIntent,
     error,
     pendingQuestion,
+    pendingTopic,
     setEnabled,
     setPhase,
     setThought: setLastThought,

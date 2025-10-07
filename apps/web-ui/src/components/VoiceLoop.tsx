@@ -6,6 +6,7 @@ import { classifyIntent } from '../../lib/voice/intent';
 import { performVoiceAction } from '../../lib/voice/actions';
 import { fetchWithRetry } from '../../lib/net/retry';
 import { addLog } from '../../lib/voice/actionLog';
+import { detectFollowUp } from '../../lib/voice/followUpDetector';
 
 /**
  * VoiceLoop orchestrator component.
@@ -136,7 +137,28 @@ export default function VoiceLoop() {
           await streamTTS(data.reply);
         }
 
-        setPhase('idle');
+        // Auto re-arm listen if reply asked a question
+        const replyIsQuestion = data.reply && detectFollowUp(data.reply).isQuestion;
+        if (replyIsQuestion && enabled) {
+          // Brief pause before re-arm (let TTS finish settling)
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Dispatch auto-listen event for VoiceBar to handle
+          window.dispatchEvent(new CustomEvent('os1:voice:auto-rearm'));
+          
+          // Set listening phase with 30s timeout
+          setPhase('listening');
+          const autoListenTimeout = setTimeout(() => {
+            if (phase === 'listening') {
+              setPhase('idle');
+            }
+          }, 30000);
+          
+          // Store timeout ref for cleanup (simplified - in production use ref)
+          (window as any).__os1_auto_listen_timeout = autoListenTimeout;
+        } else {
+          setPhase('idle');
+        }
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : String(err);
         setError(errorMsg);

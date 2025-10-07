@@ -26,7 +26,7 @@ export const VoiceBar: React.FC = () => {
   const [selectedVoice, setSelectedVoice] = useState<string>('');
   
   const voiceLoopStore = useVoiceLoop();
-  const { enabled: loopEnabled, phase: loopPhase, lastIntent, pendingQuestion } = voiceLoopStore;
+  const { enabled: loopEnabled, phase: loopPhase, lastIntent, pendingQuestion, pendingTopic } = voiceLoopStore;
   
   const ow = useOverwatch();
 
@@ -162,6 +162,20 @@ export const VoiceBar: React.FC = () => {
     return () => window.removeEventListener('keydown', handler, true);
   }, [state, start, stop]);
 
+  // Auto re-arm listen when voice loop asks a question
+  useEffect(() => {
+    const onAutoRearm = () => {
+      if (VOICE_LOOP_ON && loopEnabled && state === 'idle') {
+        const ok = start();
+        if (ok.ok) {
+          setState('listening');
+        }
+      }
+    };
+    window.addEventListener('os1:voice:auto-rearm', onAutoRearm as EventListener);
+    return () => window.removeEventListener('os1:voice:auto-rearm', onAutoRearm as EventListener);
+  }, [VOICE_LOOP_ON, loopEnabled, state, start]);
+
   const toggle = () => {
     if (state !== 'listening') {
       const ok = start();
@@ -182,8 +196,12 @@ export const VoiceBar: React.FC = () => {
         <span className="text-xs text-gray-500">Speech API not supported in this browser</span>
       )}
       {state === 'listening' && (
-        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-          listening {interim}
+        <span className={`text-xs px-2 py-1 rounded ${
+          loopPhase === 'listening' 
+            ? 'bg-green-100 text-green-800 animate-pulse' 
+            : 'bg-yellow-100 text-yellow-800'
+        }`}>
+          {loopPhase === 'listening' ? '🎤 Auto-listening' : `listening ${interim}`}
         </span>
       )}
       {!!finalTxt && (
@@ -230,10 +248,17 @@ export const VoiceBar: React.FC = () => {
                 </span>
                 {pendingQuestion && (
                   <span 
-                    className="text-xs px-2 py-1 rounded bg-amber-100 text-amber-800 border border-amber-300"
+                    className="text-xs px-2 py-1 rounded bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1"
                     title={`Follow-up expected: "${pendingQuestion}"`}
                   >
-                    🤔 Follow-up
+                    🤔 {pendingTopic ? `Expecting: ${pendingTopic}` : 'Follow-up'}
+                    <button
+                      onClick={() => voiceLoopStore.setPendingQuestion(null)}
+                      className="text-[10px] hover:text-amber-900"
+                      title="Dismiss"
+                    >
+                      ✕
+                    </button>
                   </span>
                 )}
                 {lastIntent && lastIntent !== 'none' && (
