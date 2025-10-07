@@ -8,6 +8,7 @@ import { fetchWithRetry } from '../../lib/net/retry';
 import { addLog } from '../../lib/voice/actionLog';
 import { detectFollowUp } from '../../lib/voice/followUpDetector';
 import { addMetric } from '../../lib/voice/voiceMetrics';
+import { fetchPolicy, shouldConfirmIntent, getConfirmMessage } from '../../lib/voice/confirmationPolicy';
 
 /**
  * VoiceLoop orchestrator component.
@@ -28,6 +29,15 @@ export default function VoiceLoop() {
   } = useVoiceLoop();
 
   const processingRef = useRef(false);
+  const policyLoadedRef = useRef(false);
+
+  // Load policy on mount
+  useEffect(() => {
+    if (!policyLoadedRef.current) {
+      fetchPolicy().catch(err => console.warn('[VoiceLoop] Policy load failed:', err));
+      policyLoadedRef.current = true;
+    }
+  }, []);
 
   // Helper for confirmation prompts
   const requestConfirmation = async (message: string): Promise<boolean> => {
@@ -72,11 +82,10 @@ export default function VoiceLoop() {
         
         // Perform action if intent detected
         if (intent !== 'none') {
-          // Confirmation for destructive/sensitive actions
-          if (intent === 'overwatch.pause' || intent === 'overwatch.resume') {
-            const message = intent === 'overwatch.pause' 
-              ? 'Pause Overwatch monitoring now?' 
-              : 'Resume Overwatch monitoring now?';
+          // Policy-driven confirmation check
+          if (shouldConfirmIntent(intent)) {
+            const customMessage = getConfirmMessage(intent);
+            const message = customMessage || `Confirm: ${intent}?`;
             
             const confirmed = await requestConfirmation(message);
 

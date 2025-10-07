@@ -117,6 +117,42 @@ async def audio_status():
     }
 
 
+@app.get("/v1/config/confirmations")
+async def get_confirmation_policy():
+    """
+    Returns confirmation policy for voice intents.
+    Hot-reloadable JSON configuration.
+    """
+    return {
+        "version": "1.0.0",
+        "defaultRequireConfirmation": True,
+        "rules": [
+            {
+                "intent": "overwatch.pause",
+                "requiresConfirmation": True,
+                "message": "Pause Overwatch monitoring now?",
+                "priority": 1
+            },
+            {
+                "intent": "overwatch.resume",
+                "requiresConfirmation": True,
+                "message": "Resume Overwatch monitoring now?",
+                "priority": 1
+            },
+            {
+                "intent": "action.query",
+                "requiresConfirmation": False,
+                "priority": 10
+            },
+            {
+                "intent": "action.hello",
+                "requiresConfirmation": False,
+                "priority": 10
+            }
+        ]
+    }
+
+
 @app.get("/v1/audio/events")
 async def audio_events():
     """

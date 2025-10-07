@@ -8,6 +8,7 @@ import { useVoiceLoop } from '../state/voiceLoop';
 import { useOverwatch } from '../../store/overwatch';
 import { initSecCommsDevAck } from '../../lib/seccomms/devAck';
 import { getVoices, invalidateVoicesCache, type Voice } from '../../lib/voice/voicesCache';
+import { fetchPolicy, getLastUpdated, clearPolicy } from '../../lib/voice/confirmationPolicy';
 
 const VOICE_LOOP_ON = process.env.NEXT_PUBLIC_VOICE_LOOP === '1';
 const MODEL_NAME = process.env.DEEPSEEK_MODEL || 'deepseek-r1:8b';
@@ -25,6 +26,7 @@ export const VoiceBar: React.FC = () => {
   const [ttsDisabled, setTtsDisabled] = useState(false);
   const [voices, setVoices] = useState<Voice[]>([]);
   const [selectedVoice, setSelectedVoice] = useState<string>('');
+  const [policyLastUpdated, setPolicyLastUpdated] = useState<number | null>(null);
   
   const voiceLoopStore = useVoiceLoop();
   const { enabled: loopEnabled, phase: loopPhase, lastIntent, pendingQuestion, pendingTopic } = voiceLoopStore;
@@ -128,6 +130,12 @@ export const VoiceBar: React.FC = () => {
     invalidateVoicesCache();
     const fresh = await getVoices();
     setVoices(fresh);
+  };
+
+  const refreshConfirmPolicy = async () => {
+    clearPolicy();
+    await fetchPolicy();
+    setPolicyLastUpdated(getLastUpdated());
   };
 
   useEffect(() => {
@@ -290,6 +298,15 @@ export const VoiceBar: React.FC = () => {
                   title="Toggle Action Log"
                 >
                   Log
+                </button>
+                
+                {/* Confirmation Policy Refresh */}
+                <button
+                  onClick={refreshConfirmPolicy}
+                  className="text-[10px] px-2 py-1 rounded bg-purple-800 hover:bg-purple-700"
+                  title={policyLastUpdated ? `Policy loaded ${new Date(policyLastUpdated).toLocaleTimeString()}` : 'Reload confirmation policy'}
+                >
+                  Policy ⟳
                 </button>
                 
                 {/* Voice Picker */}
