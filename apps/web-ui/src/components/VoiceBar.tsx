@@ -4,6 +4,7 @@ import { useChatRun } from '../hooks/useChatRun';
 import VoiceLoop from './VoiceLoop';
 import ConfirmCenter from './ConfirmCenter';
 import VoiceMetricsPanel from './VoiceMetricsPanel';
+import PersonaSwitcher from './PersonaSwitcher';
 import { useVoiceLoop } from '../state/voiceLoop';
 import { useOverwatch } from '../../store/overwatch';
 import { initSecCommsDevAck } from '../../lib/seccomms/devAck';
@@ -383,6 +384,9 @@ export const VoiceBar: React.FC = () => {
                     ⟳
                   </button>
                 </div>
+                
+                {/* Persona Switcher */}
+                <PersonaSwitcher />
                 
                 {/* Metrics Panel Toggle */}
                 <VoiceMetricsPanel />
