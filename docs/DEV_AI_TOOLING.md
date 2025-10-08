@@ -14,3 +14,18 @@
 
 - LF + final newline enforced; Copilot inline disabled to avoid clashes.
 - Continue tools wired to `http://localhost:4000` OS One APIs.
+
+## Verify / Repair Environment
+
+Run:
+
+```bash
+npm run check:ai
+```
+
+The script:
+
+- Checks `.vscode/settings.json` for required flags.
+- Auto-fixes inline/completion/telemetry mismatches.
+- Confirms `.continue/config.json` exists.
+- Lists required extensions.

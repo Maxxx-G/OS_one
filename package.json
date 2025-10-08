@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "predev": "node scripts/killPort.cjs 4000",
     "dev": "npm --prefix apps/web-ui run dev",
     "build": "npm --prefix apps/web-ui run build",
     "start": "npm --prefix apps/web-ui run start",
@@ -9,14 +10,28 @@
     "namecheck": "node scripts/check-names.mjs --staged",
     "namecheck:docs": "node scripts/check-names.mjs --docs",
     "verify:encoding": "node scripts/verify-encoding.mjs",
+    "verify:stream": "powershell -NoProfile -ExecutionPolicy Bypass -File ops/verify_stream_stack.ps1",
     "verify": "node scripts/verify-phase1.mjs && prettier -c \"apps/web-ui/**/*.{ts,tsx,css,md}\" && npm run verify:encoding",
+    "audit:codex": "git --no-pager show --name-status HEAD~1..HEAD > .tmp/codex_audit_last.txt && git --no-pager diff --stat HEAD~1..HEAD >> .tmp/codex_audit_last.txt && echo Audit written to .tmp/codex_audit_last.txt",
+    "push:robust": "powershell -NoProfile -ExecutionPolicy Bypass -File ops/git_push_hardening.ps1",
     "fmt:seccomms": "prettier -w \"apps/web-ui/src/components/SeccommsSwitch.tsx\" \"apps/web-ui/src/lib/redact.ts\" \"apps/web-ui/src/lib/videoRedactor.ts\" \"apps/web-ui/src/pages/api/llm/responses.ts\" \"apps/web-ui/src/pages/api/seccomms/sdp.ts\" \"apps/web-ui/src/server/seccommsGuard.ts\" \"apps/web-ui/src/state/SeccommsContext.tsx\"",
     "snapshot:phase1": "node scripts/snapshot-phase1.mjs",
-    "pre-release:phase1": "npm run verify && npm run snapshot:phase1"
+    "pre-release:phase1": "npm run verify && npm run snapshot:phase1",
+    "pathguard": "node scripts/pathguard.cjs",
+    "docs:progress": "node scripts/aggregate_guards.cjs",
+    "check:ai": "powershell -NoProfile -ExecutionPolicy Bypass -File ops/check_ai_tooling.ps1",
+    "tier:FREE": "bash tools/cli/set-tier.sh FREE",
+    "tier:CORE": "bash tools/cli/set-tier.sh CORE",
+    "tier:PRO": "bash tools/cli/set-tier.sh PRO",
+    "tier:ENTERPRISE": "bash tools/cli/set-tier.sh ENTERPRISE"
   },
   "devDependencies": {
+    "@types/howler": "^2.2.12",
     "@types/node": "^24.5.2",
     "prettier": "^3.6.2",
     "prettier-plugin-packagejson": "^2.5.19"
+  },
+  "dependencies": {
+    "howler": "^2.2.4"
   }
 }
