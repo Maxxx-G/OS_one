@@ -449,6 +449,15 @@ export const VoiceBar: React.FC = () => {
               </>
             )}
           </div>
+
+          {/* OW quick-open */}
+          <button
+            onClick={() => import('../../store/overwatchUI').then(m => m.overwatchUI.set(true))}
+            className="px-2 py-1 text-xs bg-zinc-700 hover:bg-zinc-600 text-white rounded transition-colors"
+            title="Open Overwatch panel"
+          >
+            OW ▶
+          </button>
         </>
       )}
       

@@ -35,8 +35,9 @@
 ## Stability Guardrails
 
 - Formatting scripts: `npm run fmt:check` / `npm run fmt` (see `.prettierrc.json`).
-- File naming policy pointer: [ops.one.policy.filenaming.v01.00.md](docs/templates/ops.one.policy.filenaming.v01.00.md).
+- File naming policy pointer: [ops.one.policy.filenaming.v2025.10.04.md](docs/templates/ops.one.policy.filenaming.v2025.10.04.md).
 - Agent context catalog: [agent.context.catalog.v01.00.md](docs/templates/agent.context.catalog.v01.00.md).
+- STB delivery: follow **One-Fence Rule** (single fenced block; inner code uses 4-space indentation).
 
 ## Providers & Toggles
 

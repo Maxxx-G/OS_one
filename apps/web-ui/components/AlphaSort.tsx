@@ -13,12 +13,10 @@ export default function AlphaSort() {
       const children = Array.from(node.children) as HTMLElement[];
       if (children.length < 2) return;
       const sorted = [...children].sort((a, b) =>
-        (a.textContent || '')
-          .trim()
-          .localeCompare((b.textContent || '').trim(), undefined, {
-            sensitivity: 'base',
-            numeric: true,
-          }),
+        (a.textContent || '').trim().localeCompare((b.textContent || '').trim(), undefined, {
+          sensitivity: 'base',
+          numeric: true,
+        }),
       );
       // Re-append in order if changed
       sorted.forEach((el) => node.appendChild(el));

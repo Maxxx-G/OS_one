@@ -20,4 +20,5 @@
 <Notes>
 - Agents inherit repository guardrails (dot naming, <=5 file batches, tool budgets) from the invoking Assistant.
 - Assistants remain accountable for downstream actions even when direct mode is active.
+- Agents inherit repo guardrails including dot-naming, ≤5-file batches, and the **One-Fence Rule** for STBs.
 </Notes>

@@ -8,7 +8,7 @@ export default function FilesPanel() {
   return (
     <section aria-label="Files Panel" className="card">
       <h3 className="card-title">Files</h3>
-      <ul className="space-y-1 text-sm">
+      <ul className="space-y-1 text-sm" data-sort="alpha">
         {files.map((f, i) => (
           <li key={i} className="file-row">
             <span>{f.name}</span>

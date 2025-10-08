@@ -1,5 +1,8 @@
 services:
   archon-api:
+    env_file:
+      # NOTE: path resolves from the project root (same as docker-compose.yml)
+      - ./policies/env/archon_api.env
     volumes:
       - ./integrations/archon/python:/app
     command: uvicorn app:app --host 0.0.0.0 --port 7700 --reload

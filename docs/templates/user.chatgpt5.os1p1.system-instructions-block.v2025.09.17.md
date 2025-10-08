@@ -21,4 +21,4 @@
 
 - `/yes?` → Always paraphrase; ask only if unclear; otherwise proceed
 - `/break` → Snapshot (done/pending/blockers + next actions, time-stamped)
-- `/start` → Handover summary (status/owners/deadlines/risks)
+- `/start` → Handover summary sourced from **handover-voice-phase2.v2025.10.07.md** (status • owners • deadlines • risks)

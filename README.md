@@ -177,6 +177,11 @@ Troubleshooting
 - Trigger commit to verify required checks run on PR.
 - Date: 2025-09-17
 
+### Voice Phase 3 (2025-10-07)
+
+Live voice reasoning loop powered by **DeepSeek-R1:8B** with feature flags, TTS stream support, and graceful degradation.  
+See [`docs/VOICE_PHASE3_CHANGELOG.md`](docs/VOICE_PHASE3_CHANGELOG.md) for full details, verification matrix, and Phase 4 roadmap.
+
 ## Documentation Index
 
 - **Project Plan (latest)** → [`docs/plans/OS1-PLAN.v2025.09.17.md`](docs/plans/OS1-PLAN.v2025.09.17.md)

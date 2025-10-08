@@ -1,118 +1,66 @@
 'use client';
-import React, { useEffect, useState } from 'react';
-import { useAgentState } from '@/app/providers';
+import React, { useCallback, useEffect, useState } from 'react';
 
-type ContextPayload = {
-  ok: boolean;
-  ts: number;
-  system: {
-    project: string;
-    guardrails: { redactionDefault: boolean; directDefault: boolean };
-    files: {
-      systemInstructions: string;
-      verbsReference: string;
-      stbTemplate: string;
-    };
-  };
+const STUB = {
+  session: 'Phase 1 (stub)',
+  mode: 'Mediated',
+  agent: 'OpenAI [ext]',
+  project: 'OS One Universe',
+  guards: { redactionDefault: true, directDefault: false },
 };
 
 export default function ContextPill() {
-  const { current, mode, available } = useAgentState();
   const [open, setOpen] = useState(false);
-  const [data, setData] = useState<ContextPayload | null>(null);
-  const agentMeta = available.find((agent) => agent.id === current)!;
+
+  const close = useCallback(() => setOpen(false), []);
+
+  const handleKey = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        close();
+      }
+    },
+    [close],
+  );
 
   useEffect(() => {
-    if (!open) return;
-    let alive = true;
-    (async () => {
-      try {
-        const response = await fetch('/api/context', { cache: 'no-store' });
-        const json = (await response.json()) as ContextPayload;
-        if (alive) setData(json);
-      } catch {
-        if (alive) setData(null);
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [open]);
+    if (!open) {
+      return undefined;
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [open, handleKey]);
 
   return (
     <>
       <button
         type="button"
+        className="context-pill"
+        aria-haspopup="dialog"
+        aria-expanded={open}
         onClick={() => setOpen(true)}
-        className="rounded-md border px-2 py-1 text-sm"
-        title="Show injected context (read-only)"
       >
         Context
       </button>
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setOpen(false)}
-        >
+      {open ? (
+        <div className="modal-backdrop" role="presentation" onClick={close}>
           <div
-            className="max-h-[80vh] w-[720px] overflow-auto rounded-xl border bg-white p-4 shadow-xl"
+            className="modal-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Injected Context (read-only)"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-base font-semibold">Injected Context (read-only)</h2>
-              <button
-                className="rounded-md border px-2 py-1 text-sm"
-                onClick={() => setOpen(false)}
-                aria-label="Close"
-              >
+            <header className="modal-head">
+              <h3>Injected Context (read-only)</h3>
+              <button type="button" className="btn-close" onClick={close} aria-label="Close">
                 Close
               </button>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg border p-3">
-                <div className="mb-1 text-sm font-medium">Session</div>
-                <div className="text-sm">
-                  <div>
-                    Mode: <b>{mode === 'direct' ? 'Direct' : 'Mediated'}</b>
-                  </div>
-                  <div>
-                    Agent: <b>{agentMeta.label}</b> ({agentMeta.type})
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-lg border p-3">
-                <div className="mb-1 text-sm font-medium">System</div>
-                {data ? (
-                  <div className="text-sm">
-                    <div>
-                      Project: <b>{data.system.project}</b>
-                    </div>
-                    <div>
-                      Guardrails: redactionDefault=
-                      <b>{String(data.system.guardrails.redactionDefault)}</b>, directDefault=
-                      <b>{String(data.system.guardrails.directDefault)}</b>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-sm opacity-70">Loading...</div>
-                )}
-              </div>
-            </div>
-            <div className="mt-3 rounded-lg border p-3">
-              <div className="mb-1 text-sm font-medium">Files (IDs)</div>
-              <pre className="overflow-auto whitespace-pre-wrap text-xs">
-                {data ? JSON.stringify(data.system.files, null, 2) : 'Loading...'}
-              </pre>
-            </div>
-            <p className="mt-2 text-xs opacity-70">
-              Phase-1 stub: values from <code>/api/context</code> plus live agent state from
-              Provider. Replace with KB-backed injection in Phase-2.
-            </p>
+            </header>
+            <pre className="modal-pre">{JSON.stringify(STUB, null, 2)}</pre>
           </div>
         </div>
-      )}
+      ) : null}
     </>
   );
 }

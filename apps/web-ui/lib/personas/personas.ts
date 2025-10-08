@@ -13,6 +13,12 @@ export type Onboarding = { userName?: string; bizFocus?: string[]; dob?: string 
 
 const LS = { persona: 'os1.prefs.persona_id' };
 
+// SSR-safe localStorage + event helpers
+const isBrowser = typeof window !== 'undefined';
+const lsGet = (k: string) => { try { return isBrowser ? localStorage.getItem(k) : null; } catch { return null; } };
+const lsSet = (k: string, v: string) => { try { if (isBrowser) localStorage.setItem(k, v); } catch {} };
+const emit = (name: string, detail: any) => { try { if (isBrowser) window.dispatchEvent(new CustomEvent(name, { detail })); } catch {} };
+
 export const Personas: Record<string, Persona> = {
   gabriel: {
     id: 'gabriel',
@@ -29,12 +35,12 @@ export const Personas: Record<string, Persona> = {
 };
 
 export function loadActivePersonaId() {
-  return localStorage.getItem(LS.persona) || 'gabriel';
+  return lsGet(LS.persona) || 'gabriel';
 }
 
 export function setActivePersonaId(id: string) {
-  localStorage.setItem(LS.persona, id);
-  window.dispatchEvent(new CustomEvent('os1:prefs:update', { detail: { persona_id: id } }));
+  lsSet(LS.persona, id);
+  emit('os1:prefs:update', { persona_id: id });
 }
 
 export function cloneFromTemplate(template: Persona, seed: Partial<Persona>): Persona {
@@ -64,7 +70,9 @@ export function createAgentFromTemplate(seed: Partial<Persona>) {
 // Onboarding-driven population (+ horoscope projection hook)
 export function spawnFromOnboarding(kind: 'assistant' | 'agent', ob: Onboarding) {
   const seed = deriveProfileFromOnboarding(ob, kind);
-  return kind === 'assistant'
+  const p = kind === 'assistant'
     ? createAssistantFromTemplate(seed)
     : createAgentFromTemplate(seed);
+  emit('os1:persona:created', { id: p.id });
+  return p;
 }

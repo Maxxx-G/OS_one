@@ -1,0 +1,11 @@
+commit 24a543bce95f1857e304ccd6f225042d53255d06
+Author: Maxxx-G <132196968+Maxxx-G@users.noreply.github.com>
+Date:   Mon Oct 6 18:49:53 2025 +1300
+
+    ops(archon): wire /v1/audio stubs; env-gated providers; verified with curl
+
+A	integrations/archon/python/requirements_audio.txt
+A	integrations/archon/python/routers/audio.py
+ integrations/archon/python/requirements_audio.txt |   4 +
+ integrations/archon/python/routers/audio.py       | 135 ++++++++++++++++++++++
+ 2 files changed, 139 insertions(+)

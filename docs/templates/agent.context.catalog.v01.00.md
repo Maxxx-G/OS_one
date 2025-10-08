@@ -8,4 +8,4 @@
 
 ## Update Protocol
 
-Append new agents as dot-named template files under docs/templates/ before extending this catalog. Maintain alphabetical order and bump version tags when rotating to a new policy revision.
+Append new agents as dot-named template files under docs/templates/ before extending this catalog. Maintain alphabetical order and bump version tags when rotating to a new policy revision. When adding agent profiles, avoid fenced code in templates; prefer 4-space indents to preserve STB integrity.

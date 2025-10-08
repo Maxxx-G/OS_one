@@ -1,0 +1,14 @@
+[
+  {
+    "topic_id": "elon-sensor-outreach",
+    "title": "Potential Sensor-Tech Collaboration with Elon/Tesla",
+    "authority_tier": 1,
+    "meeting_tier": 1,
+    "effective_ethic": "PRIMACY",
+    "departments": ["R&D", "PR", "Legal"],
+    "participants": ["Kharma", "Gabriel", "Alfred", "ADA", "Tiffany"],
+    "status": "queued",
+    "next_review": "2026-01-01T09:00:00+13:00",
+    "attachments": ["/automations/68e1d22cedd881919c8fb6d2bd0416f5"]
+  }
+]

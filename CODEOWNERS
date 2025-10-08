@@ -1,0 +1,7 @@
+# UI surfaces
+/apps/web-ui/ @your-org/ui-team
+# Archon runtime + ops
+/integrations/archon/ @your-org/backend-team
+/ops/ @your-org/devops
+# Shared docs/contracts
+/contracts/ @your-org/ui-team @your-org/backend-team

@@ -15,6 +15,7 @@ import VoiceOverlay from '@/components/VoiceOverlay';
 import FooterStatus from '@/components/FooterStatus';
 import ReasoningLoop from '@/components/ReasoningLoop';
 import SecCommsBadge from '../src/components/SecCommsBadge';
+import OverwatchSidebar from '../components/OverwatchSidebar';
 import { SessionProvider } from '../lib/SessionStore';
 
 // NOTE: UI skeleton aligns with design drafts located at:
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {/* Global client shim mounts first to run SEC-COMMS dev auto-ack before any interactive components */}
         <GlobalClient />
+        <OverwatchSidebar />
         <Providers>
           <SessionProvider>
             <AgentToolbar />

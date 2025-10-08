@@ -3,7 +3,7 @@ name: Live Router Ping
 on:
   workflow_dispatch:
   schedule:
-    - cron: "23 4 * * *" # daily @ 04:23 UTC
+    - cron: '23 4 * * *' # daily @ 04:23 UTC
 
 permissions:
   contents: read
