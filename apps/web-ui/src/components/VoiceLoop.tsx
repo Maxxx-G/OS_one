@@ -10,6 +10,7 @@ import { detectFollowUp } from '../../lib/voice/followUpDetector';
 import { addMetric } from '../../lib/voice/voiceMetrics';
 import { fetchPolicy, shouldConfirmIntent, getConfirmMessage } from '../../lib/voice/confirmationPolicy';
 import { addExchange, maybeGenerateSummary, getConversationContext } from '../../lib/voice/conversationMemory';
+import { postReasonWithPersona } from '../../lib/personas/inject';
 
 /**
  * VoiceLoop orchestrator component.
@@ -125,16 +126,12 @@ export default function VoiceLoop() {
         // No action or action failed - fall back to LLM reasoning
         const conversationContext = getConversationContext();
         
-        const res = await fetchWithRetry('/api/voice/reason', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            transcript, 
-            intent,
-            previousQuestion: pendingQuestion, // Pass follow-up context
-            conversation_context: conversationContext, // Pass memory context
-          }),
-        }, { timeoutMs: 8000, retries: 2, baseDelayMs: 300 });
+        const res = await postReasonWithPersona({
+          transcript,
+          intent,
+          previousQuestion: pendingQuestion,
+          conversation_context: conversationContext,
+        });
 
         const data = await res.json();
         
