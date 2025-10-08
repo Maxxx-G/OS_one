@@ -2,14 +2,20 @@
 import { useState, useEffect } from 'react';
 import { overwatchUI } from '../store/overwatchUI';
 import { useOverwatch } from '../store/overwatch';
+import OverwatchMetrics from './OverwatchMetrics';
 
 export default function OverwatchSidebar() {
   const [open, setOpen] = useState(false);
+  const [side, setSide] = useState<'right' | 'left' | 'top' | 'bottom'>('right');
   const { active, pause, resume } = useOverwatch();
 
   useEffect(() => {
     setOpen(overwatchUI.get());
-    const unsub = overwatchUI.subscribe(() => setOpen(overwatchUI.get()));
+    setSide(overwatchUI.getSnap());
+    const unsub = overwatchUI.subscribe(() => {
+      setOpen(overwatchUI.get());
+      setSide(overwatchUI.getSnap());
+    });
     return () => { unsub(); };
   }, []);
 
@@ -18,7 +24,11 @@ export default function OverwatchSidebar() {
       {/* Skinny tab */}
       <button
         onClick={() => overwatchUI.toggle()}
-        className="fixed right-0 top-1/3 z-50 bg-zinc-800 hover:bg-zinc-700 text-white px-1 py-3 rounded-l text-xs font-mono transition-colors"
+        className={`fixed z-50 bg-zinc-800 hover:bg-zinc-700 text-white px-1 py-3 text-xs font-mono transition-colors ${
+          side === 'right' ? 'right-0 top-1/3 rounded-l' : ''
+        }${side === 'left' ? 'left-0 top-1/3 rounded-r' : ''
+        }${side === 'top' ? 'top-0 left-1/2 -translate-x-1/2 rounded-b' : ''
+        }${side === 'bottom' ? 'bottom-0 left-1/2 -translate-x-1/2 rounded-t' : ''}`}
         title="Toggle Overwatch panel"
       >
         OW
@@ -26,20 +36,33 @@ export default function OverwatchSidebar() {
 
       {/* Floating panel */}
       <div
-        className={`fixed right-0 top-0 h-screen w-80 bg-zinc-900 border-l border-zinc-700 rounded-l-2xl shadow-2xl z-40 transition-transform duration-300 ${
-          open ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={`fixed z-40 bg-zinc-900 border-zinc-700 shadow-2xl transition-all duration-300 ${
+          side === 'right' ? `right-0 top-0 h-screen w-80 border-l rounded-l-2xl ${open ? 'translate-x-0' : 'translate-x-full'}` : ''
+        }${side === 'left' ? `left-0 top-0 h-screen w-80 border-r rounded-r-2xl ${open ? 'translate-x-0' : '-translate-x-full'}` : ''
+        }${side === 'top' ? `top-0 left-0 w-full h-64 border-b rounded-b-2xl ${open ? 'translate-y-0' : '-translate-y-full'}` : ''
+        }${side === 'bottom' ? `bottom-0 left-0 w-full h-64 border-t rounded-t-2xl ${open ? 'translate-y-0' : 'translate-y-full'}` : ''}`}
       >
         <div className="p-6 h-full flex flex-col gap-4">
           {/* Header */}
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-white">Overwatch</h2>
-            <button
-              onClick={() => overwatchUI.set(false)}
-              className="text-zinc-400 hover:text-white text-xl"
-            >
-              ×
-            </button>
+            <div className="flex gap-2">
+              <select
+                className="text-xs bg-zinc-800 text-white rounded px-2 py-1"
+                value={side}
+                onChange={(e) => overwatchUI.setSnap(e.target.value as any)}
+              >
+                {(['right', 'left', 'top', 'bottom'] as const).map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+              <button
+                onClick={() => overwatchUI.set(false)}
+                className="text-zinc-400 hover:text-white text-xl"
+              >
+                ×
+              </button>
+            </div>
           </div>
 
           {/* Status */}
@@ -70,6 +93,11 @@ export default function OverwatchSidebar() {
             >
               Resume
             </button>
+          </div>
+
+          {/* Metrics */}
+          <div className="flex-1 overflow-auto">
+            <OverwatchMetrics />
           </div>
         </div>
       </div>
