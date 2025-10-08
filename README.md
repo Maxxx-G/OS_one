@@ -4,7 +4,16 @@ Phase 2b adds a demo ReadableStream API and a minimal client hook to stream text
 
 Run:
 
-- pnpm install && pnpm dev
+- pnpm instal## Documentatio1. Read the **Project Plan (latest)** top to bottom.
+2. Use `/start` to announce context; use `/break` for snapshotting (done/pending/blockers/next).
+3. Create **one** Codex task block at a time using the **Single Task Block** template.
+4. Respect constraints (TypeScript-only, App Router, ports 4000/7700, feature flags off by default).
+5. Update the plan's **Decisions Log** when architecture changes occur.ex
+
+- **Project Plan (latest)** → [`docs/PROJECT_PLAN_v2025.10.10.md`](docs/PROJECT_PLAN_v2025.10.10.md)
+- **Agent Gpt5 Handover** → [`docs/AGENT_GPT5_HANDOVER.md`](docs/AGENT_GPT5_HANDOVER.md)
+- **Project Plan Template (agent-facing)** → [`docs/templates/OS1-PROJ-TEMPLATE.v2025.09.17.md`](docs/templates/OS1-PROJ-TEMPLATE.v2025.09.17.md)
+- **Codex "Single Task Block" Template & Policies** → [`docs/templates/user.chatgpt5.os1p1.codex-single-task-block.v2025.09.17.md`](docs/templates/user.chatgpt5.os1p1.codex-single-task-block.v2025.09.17.md)pnpm dev
 - In the app, click "Run Demo Stream" to see incremental text appear; when the stream closes, the text is finalized and appended as an assistant message in the store.
 
 ### Phase 2c — WebSocket Demo (Edge runtime, no deps)
