@@ -11,6 +11,8 @@ import { initSecCommsDevAck } from '../../lib/seccomms/devAck';
 import { getVoices, invalidateVoicesCache, type Voice } from '../../lib/voice/voicesCache';
 import { fetchPolicy, getLastUpdated, clearPolicy } from '../../lib/voice/confirmationPolicy';
 import { getMemoryStats, clearMemory } from '../../lib/voice/conversationMemory';
+import { Personas, loadActivePersonaId } from '../../lib/personas/personas';
+import { getVoiceId, setVoiceId, isLinkedToPersona, setLinkedToPersona } from '../../lib/voice/voicePrefs';
 
 const VOICE_LOOP_ON = process.env.NEXT_PUBLIC_VOICE_LOOP === '1';
 const MODEL_NAME = process.env.DEEPSEEK_MODEL || 'deepseek-r1:8b';
@@ -30,6 +32,7 @@ export const VoiceBar: React.FC = () => {
   const [selectedVoice, setSelectedVoice] = useState<string>('');
   const [policyLastUpdated, setPolicyLastUpdated] = useState<number | null>(null);
   const [memoryStats, setMemoryStats] = useState({ exchangeCount: 0, turnsSinceSummary: 0, hasSummary: false, lastSummaryAt: null as number | null });
+  const [linked, setLinked] = useState<boolean>(true);
   
   const voiceLoopStore = useVoiceLoop();
   const { enabled: loopEnabled, phase: loopPhase, lastIntent, pendingQuestion, pendingTopic } = voiceLoopStore;
@@ -111,6 +114,35 @@ export const VoiceBar: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Initialize persona-voice link state
+  useEffect(() => {
+    setLinked(isLinkedToPersona());
+  }, []);
+
+  // When persona changes, update TTS voice if linked
+  useEffect(() => {
+    const onPrefs = (e: any) => {
+      const id = e?.detail?.persona_id || loadActivePersonaId();
+      const p = Personas[id] || Personas.gabriel;
+      if (isLinkedToPersona() && p?.profile?.voiceId) {
+        setVoiceId(p.profile.voiceId);
+        setSelectedVoice(p.profile.voiceId);
+      }
+    };
+    window.addEventListener('os1:prefs:update', onPrefs);
+    return () => window.removeEventListener('os1:prefs:update', onPrefs);
+  }, []);
+
+  // If user manually picks a voice, unlink
+  useEffect(() => {
+    const onManual = () => {
+      setLinkedToPersona(false);
+      setLinked(false);
+    };
+    window.addEventListener('os1:tts:voice:manual', onManual);
+    return () => window.removeEventListener('os1:tts:voice:manual', onManual);
+  }, []);
+
   // Load persisted voice selection from prefs
   useEffect(() => {
     if (!VOICE_LOOP_ON) return;
@@ -127,6 +159,9 @@ export const VoiceBar: React.FC = () => {
   const handleVoiceChange = async (voiceId: string) => {
     // Optimistic update
     setSelectedVoice(voiceId);
+
+    // Broadcast manual override (unlinks persona)
+    window.dispatchEvent(new CustomEvent('os1:tts:voice:manual', { detail: { voiceId } }));
 
     // Persist to backend
     try {
@@ -387,6 +422,27 @@ export const VoiceBar: React.FC = () => {
                 
                 {/* Persona Switcher */}
                 <PersonaSwitcher />
+                
+                {/* Persona ↔ Voice link badge + toggle */}
+                <button
+                  onClick={() => {
+                    const next = !linked;
+                    setLinkedToPersona(next);
+                    setLinked(next);
+                    if (next) {
+                      const id = loadActivePersonaId();
+                      const p = Personas[id] || Personas.gabriel;
+                      if (p?.profile?.voiceId) {
+                        setVoiceId(p.profile.voiceId);
+                        setSelectedVoice(p.profile.voiceId);
+                      }
+                    }
+                  }}
+                  className={`text-[10px] px-2 py-1 rounded ${linked ? 'bg-green-700 text-white' : 'bg-neutral-700 text-white'}`}
+                  title={linked ? 'Voice follows persona' : 'Manual voice (unlinked)'}
+                >
+                  {linked ? '🔗 Persona Voice' : '🔓 Unlinked'}
+                </button>
                 
                 {/* Metrics Panel Toggle */}
                 <VoiceMetricsPanel />
