@@ -21,6 +21,7 @@
     "docs:progress": "node scripts/aggregate_guards.cjs",
     "check:ai": "powershell -NoProfile -ExecutionPolicy Bypass -File ops/check_ai_tooling.ps1",
     "audit:repo": "node scripts/audit_repo.mjs",
+    "validate:stb": "node scripts/validate_stb_headers.mjs",
     "tier:FREE": "bash tools/cli/set-tier.sh FREE",
     "tier:CORE": "bash tools/cli/set-tier.sh CORE",
     "tier:PRO": "bash tools/cli/set-tier.sh PRO",
