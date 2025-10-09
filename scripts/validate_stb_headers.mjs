@@ -26,9 +26,11 @@ import { fileURLToPath } from 'url';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const ROOT = join(__dirname, '..');
 
-// Filename pattern: {tier1}.{agent}.{domain}.{purpose}.v{YYYY}.{MM}.{DD}.md
+// Filename pattern: {tier1}.{agent}.{domain}.{purpose}.v{YYYY}.{MM}.{DD}.{ext}
 // Purpose can contain multiple hyphenated segments (e.g., "stb-template", "single-task-block")
-const FILENAME_PATTERN = /^([a-z]+)\.([a-z0-9-]+)\.([a-z0-9-]+)\.([a-z0-9-]+(?:-[a-z0-9-]+)*)\.v(\d{4})\.(\d{2})\.(\d{2})\.md$/;
+// Supported extensions: md, ps1, json, yaml, yml, ts, tsx
+const FILENAME_PATTERN = /^([a-z]+)\.([a-z0-9-]+)\.([a-z0-9-]+)\.([a-z0-9-]+(?:-[a-z0-9-]+)*)\.v(\d{4})\.(\d{2})\.(\d{2})\.(md|ps1|json|yaml|yml|ts|tsx)$/;
+const SUPPORTED_EXTENSIONS = ['md', 'ps1', 'json', 'yaml', 'yml', 'ts', 'tsx'];
 
 const REQUIRED_HEADERS = [
   'X-Tier1',
@@ -42,20 +44,86 @@ const REQUIRED_HEADERS = [
 const VALID_TIER1 = ['user', 'assistant'];
 
 /**
- * Parse headers from markdown content
+ * Parse headers from file content based on extension
  */
-function parseHeaders(content) {
+function parseHeaders(content, ext) {
   const headers = {};
   const lines = content.split('\n');
   
-  for (const line of lines) {
-    // Stop at first non-header line (after initial title/headers section)
-    if (line.startsWith('##') && !line.includes('X-')) break;
-    
-    const match = line.match(/^(X-[A-Za-z0-9-]+):\s*(.+?)(?:\s*#.*)?$/);
-    if (match) {
-      const [, key, value] = match;
-      headers[key] = value.trim();
+  // Different parsing strategies by extension
+  if (ext === 'md') {
+    // Markdown: Look for X-Key: value format
+    for (const line of lines) {
+      if (line.startsWith('##') && !line.includes('X-')) break; // Stop at first h2
+      
+      const match = line.match(/^(X-[A-Za-z0-9-]+):\s*(.+?)(?:\s*#.*)?$/);
+      if (match) {
+        const [, key, value] = match;
+        headers[key] = value.trim();
+      }
+    }
+  } else if (ext === 'ps1') {
+    // PowerShell: Look inside <# ... #> comment block or # comments
+    let inBlock = false;
+    for (const line of lines) {
+      if (line.trim() === '<#') { inBlock = true; continue; }
+      if (line.trim() === '#>') { inBlock = false; continue; }
+      
+      if (inBlock || line.trim().startsWith('#')) {
+        const cleanLine = line.replace(/^#\s*/, '').trim();
+        const match = cleanLine.match(/^(X-[A-Za-z0-9-]+):\s*(.+?)$/);
+        if (match) {
+          const [, key, value] = match;
+          headers[key] = value.trim();
+        }
+      }
+    }
+  } else if (ext === 'json') {
+    // JSON: Look for _metadata object
+    try {
+      const parsed = JSON.parse(content);
+      if (parsed._metadata) {
+        Object.keys(parsed._metadata).forEach(key => {
+          if (key.startsWith('X-')) {
+            headers[key] = String(parsed._metadata[key]);
+          }
+        });
+      }
+    } catch (e) {
+      // Invalid JSON - will fail validation later
+    }
+  } else if (ext === 'yaml' || ext === 'yml') {
+    // YAML: Look for _metadata or top-level X- keys
+    // Simple parser - look for X-Key: value lines
+    for (const line of lines) {
+      const match = line.match(/^(X-[A-Za-z0-9-]+):\s*(.+?)$/);
+      if (match) {
+        const [, key, value] = match;
+        headers[key] = value.trim().replace(/^["']|["']$/g, ''); // Remove quotes
+      }
+    }
+  } else if (ext === 'ts' || ext === 'tsx') {
+    // TypeScript: Look inside /** ... */ or // comments
+    let inBlock = false;
+    for (const line of lines) {
+      if (line.trim().startsWith('/**')) { inBlock = true; continue; }
+      if (line.trim().startsWith('*/')) { inBlock = false; continue; }
+      
+      if (inBlock) {
+        const cleanLine = line.replace(/^\s*\*\s*/, '').trim();
+        const match = cleanLine.match(/^(X-[A-Za-z0-9-]+):\s*(.+?)$/);
+        if (match) {
+          const [, key, value] = match;
+          headers[key] = value.trim();
+        }
+      } else if (line.trim().startsWith('//')) {
+        const cleanLine = line.replace(/^\/\/\s*/, '').trim();
+        const match = cleanLine.match(/^(X-[A-Za-z0-9-]+):\s*(.+?)$/);
+        if (match) {
+          const [, key, value] = match;
+          headers[key] = value.trim();
+        }
+      }
     }
   }
   
@@ -68,10 +136,11 @@ function parseHeaders(content) {
 function validateSTBFile(filePath) {
   const errors = [];
   const filename = basename(filePath);
+  const ext = extname(filename).slice(1); // Remove leading dot
   
-  // Skip non-.md files
-  if (extname(filename) !== '.md') {
-    return { valid: true, errors: [], warnings: [`Skipped non-markdown: ${filename}`] };
+  // Skip files with unsupported extensions
+  if (!SUPPORTED_EXTENSIONS.includes(ext)) {
+    return { valid: true, errors: [], warnings: [`Skipped unsupported extension: ${filename}`] };
   }
   
   // Skip archived files
@@ -93,11 +162,12 @@ function validateSTBFile(filePath) {
   // Validate filename pattern
   const match = filename.match(FILENAME_PATTERN);
   if (!match) {
-    errors.push(`Filename does not match pattern: {tier1}.{agent}.{domain}.{purpose}.v{YYYY}.{MM}.{DD}.md`);
+    errors.push(`Filename does not match pattern: {tier1}.{agent}.{domain}.{purpose}.v{YYYY}.{MM}.{DD}.{ext}`);
+    errors.push(`  Supported extensions: ${SUPPORTED_EXTENSIONS.join(', ')}`);
     return { valid: false, errors, warnings: [] };
   }
   
-  const [, tier1, agent, domain, purpose, year, month, day] = match;
+  const [, tier1, agent, domain, purpose, year, month, day, extension] = match;
   
   // Validate tier1
   if (!VALID_TIER1.includes(tier1)) {
@@ -123,7 +193,7 @@ function validateSTBFile(filePath) {
     return { valid: false, errors, warnings: [] };
   }
   
-  const headers = parseHeaders(content);
+  const headers = parseHeaders(content, ext);
   
   // Check required headers
   for (const required of REQUIRED_HEADERS) {
@@ -188,8 +258,11 @@ function findSTBFiles(dir = join(ROOT, 'templates')) {
         // Skip _archive directory
         if (entry === '_archive') continue;
         files.push(...findSTBFiles(fullPath));
-      } else if (entry.endsWith('.md')) {
-        files.push(fullPath);
+      } else {
+        const ext = extname(entry).slice(1);
+        if (SUPPORTED_EXTENSIONS.includes(ext)) {
+          files.push(fullPath);
+        }
       }
     }
   } catch (err) {
@@ -208,7 +281,7 @@ function main() {
   // Get files to validate
   let filesToValidate = [];
   
-  if (process.argv.length > 2) {
+  if (filesToValidate.length > 2) {
     // Validate specific files from command line
     filesToValidate = process.argv.slice(2);
     console.log(`📄 Validating ${filesToValidate.length} specified file(s)...\n`);
@@ -216,7 +289,8 @@ function main() {
     // Validate all STB files in /templates
     filesToValidate = findSTBFiles();
     console.log(`📁 Scanning /templates directory...`);
-    console.log(`📄 Found ${filesToValidate.length} markdown file(s) to validate\n`);
+    console.log(`📄 Found ${filesToValidate.length} file(s) to validate`);
+    console.log(`📋 Extensions: ${SUPPORTED_EXTENSIONS.join(', ')}\n`);
   }
   
   if (filesToValidate.length === 0) {

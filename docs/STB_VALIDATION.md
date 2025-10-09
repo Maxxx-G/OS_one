@@ -14,7 +14,7 @@ This protocol enforces **Tier-1 (user/assistant) + Tier-2 (agent)** compliance f
 
 ### 1. Filename Pattern
 
-**Required Format**: `{tier1}.{agent}.{domain}.{purpose}.v{YYYY}.{MM}.{DD}.md`
+**Required Format**: `{tier1}.{agent}.{domain}.{purpose}.v{YYYY}.{MM}.{DD}.{ext}`
 
 **Components**:
 - `{tier1}` → `user` or `assistant` (who authored it)
@@ -22,15 +22,24 @@ This protocol enforces **Tier-1 (user/assistant) + Tier-2 (agent)** compliance f
 - `{domain}` → Short scope bucket (e.g., `docs`, `ui`, `api`, `kb`, `ops`)
 - `{purpose}` → Kebab-case summary of what it does
 - `v{YYYY}.{MM}.{DD}` → Version date (ISO 8601 fragment)
+- `{ext}` → File extension (see below)
+
+**Supported Extensions**:
+- `.md` - Markdown (docs, STBs, templates)
+- `.ps1` - PowerShell scripts
+- `.json` - JSON config files
+- `.yaml`, `.yml` - YAML configs
+- `.ts`, `.tsx` - TypeScript source files
 
 **Examples**:
 ```
 ✅ user.copilot.ui.overwatch-metrics.v2025.10.09.md
-✅ assistant.deepseek-r1-8b.api.session-persistence.v2025.10.10.md
-✅ user.copilot.stb-template.v2025.10.10.md
+✅ assistant.deepseek-r1-8b.api.session-persistence.v2025.10.10.ts
+✅ user.copilot.ops.deployment.v2025.10.10.ps1
+✅ user.copilot.templates.agent-config.v2025.10.10.json
 
 ❌ stb-overwatch.md (missing tier1/agent/version)
-❌ user.copilot.stb.md (missing version date)
+❌ user.copilot.stb.md (missing domain/version)
 ❌ copilot.ui.feature.md (missing tier1)
 ```
 
