@@ -79,9 +79,15 @@ function validateSTBFile(filePath) {
     return { valid: true, errors: [], warnings: [`Skipped archived: ${filename}`] };
   }
   
-  // Skip README files
-  if (filename.toUpperCase() === 'README.MD') {
-    return { valid: true, errors: [], warnings: [`Skipped README: ${filename}`] };
+  // Skip README-style documentation files (all caps .md files)
+  const baseNameUpper = filename.replace(/\.md$/i, '').toUpperCase();
+  const isDocFile = baseNameUpper === filename.replace(/\.md$/i, '').toUpperCase() && 
+                    baseNameUpper.includes('_') || 
+                    baseNameUpper === 'README' ||
+                    ['USAGE', 'QUICK_REFERENCE', 'GUIDE', 'INDEX'].includes(baseNameUpper);
+  
+  if (isDocFile) {
+    return { valid: true, errors: [], warnings: [`Skipped documentation file: ${filename}`] };
   }
   
   // Validate filename pattern
