@@ -504,7 +504,8 @@ body {
 
 /* Alpha-sort hint class (purely semantic; behavior in client script) */
 [data-sort='alpha'] {
-  /* marks containers for alphabetical sorting - no visual styles needed */
+  /* Container for alphabetical sorting - behavior handled by AlphaSort.tsx */
+  display: block;
 }
 
 /* ---------- Mini Audit Sink ---------- */
