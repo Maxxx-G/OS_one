@@ -9,7 +9,8 @@ Run:
 - **Project Plan (latest)** → [`docs/project_plans/user.copilot.os1p1.project-plan.v2025.10.10.md`](docs/project_plans/user.copilot.os1p1.project-plan.v2025.10.10.md)
 - **Agent GPT5 Handover** → [`docs/AGENT_GPT5_HANDOVER.md`](docs/AGENT_GPT5_HANDOVER.md)
 - **Genesis Hub & Telemetry**:
-  - Genesis Series (Tier I–III blueprint) → [`docs/hubs/user.copilot.os1universe.genesis-hub.v2025.10.12.md`](docs/hubs/user.copilot.os1universe.genesis-hub.v2025.10.12.md)
+  - Genesis Series (Tier I–III blueprint) → [`docs/hubs/user.copilot.os1universe.genesis-app-registry.v2025.10.12.json`](docs/hubs/user.copilot.os1universe.genesis-app-registry.v2025.10.12.json)
+  - **Tier-I Status**: AuroraWire = MVP (active, telemetry), LexiCore = MVP (active, telemetry)
   - LexiCore (Word Processor MVP, health-integrated) → [http://localhost:4000/lexicore](http://localhost:4000/lexicore) (dev)
   - AI UI Builder Bridge → [`docs/policies/user.copilot.os1universe.ai-ui-builder-bridge.v2025.10.12.md`](docs/policies/user.copilot.os1universe.ai-ui-builder-bridge.v2025.10.12.md)
   - Telemetry Dashboard → [http://localhost:4000/telemetry](http://localhost:4000/telemetry) (dev)
