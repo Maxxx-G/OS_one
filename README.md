@@ -1,10 +1,20 @@
-Phase 2a adds shared types and a Zustand store. No UI wiring yet.
+﻿Phase 2a adds shared types and a Zustand store. No UI wiring yet.
 
 Phase 2b adds a demo ReadableStream API and a minimal client hook to stream text into the store.
 
 Run:
 
-- pnpm instal## Documentatio1. Read the **Project Plan (latest)** top to bottom.
+- pnpm instal## Docume## Documentation Index
+
+- **Project Plan (latest)** → [`docs/project_plans/user.copilot.os1p1.project-plan.v2025.10.10.md`](docs/project_plans/user.copilot.os1p1.project-plan.v2025.10.10.md)
+- **Agent GPT5 Handover** → [`docs/AGENT_GPT5_HANDOVER.md`](docs/AGENT_GPT5_HANDOVER.md)
+- **Genesis Hub & Telemetry**:
+  - Genesis Series (Tier I–III blueprint) → [`docs/hubs/user.copilot.os1universe.genesis-hub.v2025.10.12.md`](docs/hubs/user.copilot.os1universe.genesis-hub.v2025.10.12.md)
+  - LexiCore (Word Processor MVP) → [http://localhost:4000/lexicore](http://localhost:4000/lexicore) (dev)
+  - AI UI Builder Bridge → [`docs/policies/user.copilot.os1universe.ai-ui-builder-bridge.v2025.10.12.md`](docs/policies/user.copilot.os1universe.ai-ui-builder-bridge.v2025.10.12.md)
+  - Telemetry Dashboard → [http://localhost:4000/telemetry](http://localhost:4000/telemetry) (dev)
+- **Project Plan Template (agent-facing)** → [`docs/templates/user.copilot.os1p1docs.proj-template.v2025.09.17.md`](docs/templates/user.copilot.os1p1docs.proj-template.v2025.09.17.md)
+- **Codex "Single Task Block" Template & Policies** → [`docs/templates/user.chatgpt5.os1p1.codex-single-task-block.v2025.09.17.md`](docs/templates/user.chatgpt5.os1p1.codex-single-task-block.v2025.09.17.md)o1. Read the **Project Plan (latest)** top to bottom.
 2. Use `/start` to announce context; use `/break` for snapshotting (done/pending/blockers/next).
 3. Create **one** Codex task block at a time using the **Single Task Block** template.
 4. Respect constraints (TypeScript-only, App Router, ports 4000/7700, feature flags off by default).
@@ -12,7 +22,7 @@ Run:
 
 - **Project Plan (latest)** → [`docs/PROJECT_PLAN_v2025.10.10.md`](docs/PROJECT_PLAN_v2025.10.10.md)
 - **Agent Gpt5 Handover** → [`docs/AGENT_GPT5_HANDOVER.md`](docs/AGENT_GPT5_HANDOVER.md)
-- **Project Plan Template (agent-facing)** → [`docs/templates/OS1-PROJ-TEMPLATE.v2025.09.17.md`](docs/templates/OS1-PROJ-TEMPLATE.v2025.09.17.md)
+- **Project Plan Template (agent-facing)** → [`docs/templates/user.copilot.os1p1docs.proj-template.v2025.10.11.md`](docs/templates/user.copilot.os1p1docs.proj-template.v2025.10.11.md)
 - **Codex "Single Task Block" Template & Policies** → [`docs/templates/user.chatgpt5.os1p1.codex-single-task-block.v2025.09.17.md`](docs/templates/user.chatgpt5.os1p1.codex-single-task-block.v2025.09.17.md)pnpm dev
 - In the app, click "Run Demo Stream" to see incremental text appear; when the stream closes, the text is finalized and appended as an assistant message in the store.
 
@@ -194,7 +204,7 @@ See [`docs/VOICE_PHASE3_CHANGELOG.md`](docs/VOICE_PHASE3_CHANGELOG.md) for full 
 ## Documentation Index
 
 - **Project Plan (latest)** → [`docs/plans/OS1-PLAN.v2025.09.17.md`](docs/plans/OS1-PLAN.v2025.09.17.md)
-- **Project Plan Template (agent-facing)** → [`docs/templates/OS1-PROJ-TEMPLATE.v2025.09.17.md`](docs/templates/OS1-PROJ-TEMPLATE.v2025.09.17.md)
+- **Project Plan Template (agent-facing)** → [`docs/templates/user.copilot.os1p1docs.proj-template.v2025.10.11.md`](docs/templates/user.copilot.os1p1docs.proj-template.v2025.10.11.md)
 - **Codex “Single Task Block” Template & Policies** → [`docs/templates/user.chatgpt5.os1p1.codex-single-task-block.v2025.09.17.md`](docs/templates/user.chatgpt5.os1p1.codex-single-task-block.v2025.09.17.md)
 
 > Treat the plan as the **single source of truth**. All new work orders must follow the Codex single-block format.
@@ -234,11 +244,13 @@ app builds; feature verified; no regressions
 
 ## Quick Dev Reminders
 
-- Dev port: http://localhost:3001 (fallback 3002)
-- Start: `pnpm web:dev` • Prod: `pnpm web:build && pnpm web:start`
-- Controller toggle: `NEXT_PUBLIC_USE_CONTROLLER=1`
-- Persistence: `NEXT_PUBLIC_FEATURE_PERSIST=1` (Supabase env required)
-- History: `NEXT_PUBLIC_FEATURE_HISTORY=1`
+- Dev port: http://localhost:4000 (was 3001)
+- Start: `npm run -w apps/web-ui dev`
+- Smoke: `npm run smoke` or `pwsh ./scripts/tools/os1_smoke.ps1`
+- **Zero-Tolerance Guardian** (opt-in): `node scripts/checks/stb_guard.mjs`
+  - Enable pre-commit: `git config os1.enableGuardian true`
+  - Disable: `git config os1.enableGuardian false`
+  - Policy: `docs/policies/user.copilot.os1p1ops.zero-tolerance-guard.v2025.10.12.md`
 - WS input: `NEXT_PUBLIC_FEATURE_WS_INPUT=1`
 - Logs: `apps/web-ui/logs/runtime/*.jsonl`
 
