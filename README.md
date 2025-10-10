@@ -10,7 +10,7 @@ Run:
 - **Agent GPT5 Handover** → [`docs/AGENT_GPT5_HANDOVER.md`](docs/AGENT_GPT5_HANDOVER.md)
 - **Genesis Hub & Telemetry**:
   - Genesis Series (Tier I–III blueprint) → [`docs/hubs/user.copilot.os1universe.genesis-hub.v2025.10.12.md`](docs/hubs/user.copilot.os1universe.genesis-hub.v2025.10.12.md)
-  - LexiCore (Word Processor MVP) → [http://localhost:4000/lexicore](http://localhost:4000/lexicore) (dev)
+  - LexiCore (Word Processor MVP, health-integrated) → [http://localhost:4000/lexicore](http://localhost:4000/lexicore) (dev)
   - AI UI Builder Bridge → [`docs/policies/user.copilot.os1universe.ai-ui-builder-bridge.v2025.10.12.md`](docs/policies/user.copilot.os1universe.ai-ui-builder-bridge.v2025.10.12.md)
   - Telemetry Dashboard → [http://localhost:4000/telemetry](http://localhost:4000/telemetry) (dev)
 - **Project Plan Template (agent-facing)** → [`docs/templates/user.copilot.os1p1docs.proj-template.v2025.09.17.md`](docs/templates/user.copilot.os1p1docs.proj-template.v2025.09.17.md)
@@ -317,3 +317,6 @@ Project plan now explicitly references governing templates for execution, planni
 - Status chip cycles Idle -> OK/Degraded/Offline based on the latest quick test latency.
 - Click **Test** to send a redacted `hello` through the current agent path without touching history.
 - Quick Test respects Direct Agent defaults and resets automatically on provider/model changes.
+\n## Genesis Quick Links (local dev)
+
+- AuroraWire (News Dashboard): http://localhost:4000/aurora (health-checked UI)

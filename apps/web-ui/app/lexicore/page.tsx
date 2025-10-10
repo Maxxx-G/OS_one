@@ -10,11 +10,13 @@ X-Policy: filename+header compliance required
 "use client";
 
 import { useState } from "react";
+import { useLexicoreHealth } from "./hooks/useLexicoreHealth";
 
 export default function LexiCorePage() {
   const [doc, setDoc] = useState("");
   const [status, setStatus] = useState("");
   const [replayFile, setReplayFile] = useState("");
+  const health = useLexicoreHealth();
 
   const handleSave = async () => {
     try {
@@ -83,7 +85,22 @@ export default function LexiCorePage() {
 
   return (
     <div style={{ padding: "2rem", maxWidth: "900px", margin: "0 auto" }}>
-      <h1>LexiCore — Cognitive Word Processor</h1>
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+        <h1 style={{ margin: 0 }}>LexiCore — Cognitive Word Processor</h1>
+        <div
+          style={{
+            padding: "0.25rem 0.75rem",
+            borderRadius: "12px",
+            fontSize: "14px",
+            fontWeight: "600",
+            background: health.ok && health.mode === "local_only" ? "#d1fae5" : "#fee2e2",
+            color: health.ok && health.mode === "local_only" ? "#065f46" : "#991b1b",
+            border: health.ok && health.mode === "local_only" ? "1px solid #10b981" : "1px solid #ef4444",
+          }}
+        >
+          {health.loading ? "⏳ Checking..." : health.ok && health.mode === "local_only" ? "✅ Healthy" : "❌ Offline"}
+        </div>
+      </div>
       <p style={{ color: "#666" }}>
         Tier-I MVP: Editor with vault persistence (ε) and replay cue (ζ)
       </p>
