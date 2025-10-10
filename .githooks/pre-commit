@@ -1,0 +1,21 @@
+#!/bin/sh
+# OS_One pre-commit hook: STB filename+header enforcement
+# Cross-platform: uses Node/npm so it works on Windows via Git Bash and on Unix
+
+# If npm is unavailable, try npx as fallback
+if command -v npm >/dev/null 2>&1; then
+  npm run --silent precommit:stb
+  STATUS=$?
+else
+  echo "npm not found; attempting npx node to run validator" >&2
+  npx --yes --silent node scripts/validate_stb_headers.mjs
+  STATUS=$?
+fi
+
+if [ $STATUS -ne 0 ]; then
+  echo "\n✖ Pre-commit blocked: STB validation failed." >&2
+  exit $STATUS
+fi
+
+# All good
+exit 0
