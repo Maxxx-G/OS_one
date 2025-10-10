@@ -27,9 +27,12 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const ROOT = join(__dirname, '..');
 
 // Filename pattern: {tier1}.{agent}.{domain}.{purpose}.v{YYYY}.{MM}.{DD}.{ext}
+// Domain can now include compound project identifiers: {os-system}{phase}{component}
+// Examples: os1p1webui, os1p1api, os1p2workbench
 // Purpose can contain multiple hyphenated segments (e.g., "stb-template", "single-task-block")
 // Supported extensions: md, ps1, json, yaml, yml, ts, tsx
-const FILENAME_PATTERN = /^([a-z]+)\.([a-z0-9-]+)\.([a-z0-9-]+)\.([a-z0-9-]+(?:-[a-z0-9-]+)*)\.v(\d{4})\.(\d{2})\.(\d{2})\.(md|ps1|json|yaml|yml|ts|tsx)$/;
+// Updated v2025.10.11: Added support for compound project identifiers (e.g., os1p1webui, os1p1api)
+const FILENAME_PATTERN = /^([a-z]+)\.([a-z0-9-]+)\.([a-z0-9-]+(?:p\d+[a-z0-9-]*)?)\.([a-z0-9-]+(?:-[a-z0-9-]+)*)\.v(\d{4})\.(\d{2})\.(\d{2})\.(md|ps1|json|yaml|yml|ts|tsx)$/;
 const SUPPORTED_EXTENSIONS = ['md', 'ps1', 'json', 'yaml', 'yml', 'ts', 'tsx'];
 
 const REQUIRED_HEADERS = [

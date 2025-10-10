@@ -1,11 +1,6 @@
 {
+  "_comment": "X-Tier1: user\nX-Agent: copilot\nX-Domain: os1universe\nX-Purpose: genesis-app-registry\nX-Version: v2025.10.12\nX-Policy: filename+header compliance required",
   "_metadata": {
-    "X-Tier1": "user",
-    "X-Agent": "copilot",
-    "X-Domain": "os1universe",
-    "X-Purpose": "genesis-app-registry",
-    "X-Version": "v2025.10.12",
-    "X-Policy": "filename+header compliance required",
     "description": "Machine-readable registry of The Genesis Series applications",
     "last_updated": "2025-10-12"
   },
