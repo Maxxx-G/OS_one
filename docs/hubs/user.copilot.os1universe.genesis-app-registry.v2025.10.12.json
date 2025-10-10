@@ -11,7 +11,9 @@
       "category": "news",
       "domain": "News & Research",
       "description": "Real-time feed + context synthesis with RAG hooks",
-      "status": "planned",
+      "status": "mvp",
+      "route": "/aurora",
+      "api": "/api/aurora/health",
       "seccomms": ["alpha", "epsilon", "zeta", "eta"],
       "features": ["SEC-COMMS enabled", "RAG context synthesis", "Semantic search"]
     },
@@ -61,7 +63,9 @@
       "category": "writer",
       "domain": "Word Processor",
       "description": "Cognitive documents with STB block inserts",
-      "status": "planned",
+      "status": "mvp",
+      "route": "/lexicore",
+      "api": "/api/lexicore/health",
       "seccomms": ["alpha", "delta", "epsilon", "zeta", "eta"],
       "features": ["STB block inserts", "Semantic search", "Context-aware suggestions"]
     },
