@@ -23,6 +23,7 @@
     "audit:repo": "node scripts/audit_repo.mjs",
     "validate:stb": "node scripts/validate_stb_headers.mjs",
     "precommit:stb": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/user.copilot.ops.stb-precommit-hook.v2025.10.10.ps1",
+    "smoke": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p1ops.smoke.v2025.10.11.ps1",
     "tier:FREE": "bash tools/cli/set-tier.sh FREE",
     "tier:CORE": "bash tools/cli/set-tier.sh CORE",
     "tier:PRO": "bash tools/cli/set-tier.sh PRO",

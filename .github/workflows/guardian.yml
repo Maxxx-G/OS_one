@@ -1,0 +1,17 @@
+name: Zero-Tolerance Guardian (Blocking Mode)
+on:
+    workflow_dispatch: # Manual trigger available
+    pull_request:      # Auto-run on PRs
+    push:
+      branches: [main, codex/ci-exercise] # Auto-run on push to main/codex branches
+jobs:
+    guard:
+        runs-on: windows-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with: { node-version: "18" }
+            - name: Run Zero-Tolerance Guardian
+              run: node scripts/checks/stb_guard.mjs
+            - name: STB Header Validator
+              run: npm run validate:stb
