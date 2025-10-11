@@ -12,14 +12,25 @@ X-Policy: filename+header compliance required
  * Provides α-layer (egress control) and ε-layer (vault access) helpers
  */
 
-export function getMode(): string {
+/**
+ * Get SEC-COMMS mode (pure function, safe for all routes)
+ * @returns "local_only" | "external" | custom mode from env
+ */
+export function getSecMode(): string {
   // Default to local_only for SEC-COMMS compliance
   // In production, this would read from environment or config
   return process.env.SECCOMMS_MODE || "local_only";
 }
 
+/**
+ * @deprecated Use getSecMode() instead
+ */
+export function getMode(): string {
+  return getSecMode();
+}
+
 export function isLocalOnly(): boolean {
-  return getMode() === "local_only";
+  return getSecMode() === "local_only";
 }
 
 export function ollamaUrl(): string {
