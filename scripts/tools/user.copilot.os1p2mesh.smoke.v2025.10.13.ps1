@@ -48,8 +48,8 @@ function Test-MeshEndpoint {
                     Write-Host " PASS" -ForegroundColor Green
                     $script:passedTests++
                     return @{ 
-                        Name = $Name
-                        Status = "PASS"
+                        Name    = $Name
+                        Status  = "PASS"
                         Details = "Status 200, field '$ExpectedField' present, X-SEC-COMMS-MODE: $secCommsHeader"
                     }
                 }
@@ -57,8 +57,8 @@ function Test-MeshEndpoint {
                     Write-Host " WARN (missing X-SEC-COMMS-MODE header)" -ForegroundColor Yellow
                     $script:passedTests++
                     return @{ 
-                        Name = $Name
-                        Status = "WARN"
+                        Name    = $Name
+                        Status  = "WARN"
                         Details = "Status 200, field present, but missing X-SEC-COMMS-MODE header"
                     }
                 }
@@ -67,8 +67,8 @@ function Test-MeshEndpoint {
                 Write-Host " FAIL (field '$ExpectedField' missing)" -ForegroundColor Red
                 $script:failedTests++
                 return @{ 
-                    Name = $Name
-                    Status = "FAIL"
+                    Name    = $Name
+                    Status  = "FAIL"
                     Details = "Field '$ExpectedField' not found in response"
                 }
             }
@@ -77,8 +77,8 @@ function Test-MeshEndpoint {
             Write-Host " FAIL (status $($response.StatusCode))" -ForegroundColor Red
             $script:failedTests++
             return @{ 
-                Name = $Name
-                Status = "FAIL"
+                Name    = $Name
+                Status  = "FAIL"
                 Details = "Unexpected status: $($response.StatusCode)"
             }
         }
@@ -87,8 +87,8 @@ function Test-MeshEndpoint {
         if ($_.Exception.Message -match "Unable to connect|connection") {
             Write-Host " SKIP (server not running)" -ForegroundColor DarkGray
             return @{ 
-                Name = $Name
-                Status = "SKIP"
+                Name    = $Name
+                Status  = "SKIP"
                 Details = "Dev server not running at $BaseUrl"
             }
         }
@@ -96,8 +96,8 @@ function Test-MeshEndpoint {
         Write-Host " FAIL ($($_.Exception.Message))" -ForegroundColor Red
         $script:failedTests++
         return @{ 
-            Name = $Name
-            Status = "FAIL"
+            Name    = $Name
+            Status  = "FAIL"
             Details = $_.Exception.Message
         }
     }
@@ -106,7 +106,66 @@ function Test-MeshEndpoint {
 # Test 1: Heartbeat endpoint
 $results += Test-MeshEndpoint -Name "Mesh heartbeat endpoint" -Url "$BaseUrl/api/mesh/heartbeat" -ExpectedField "ok"
 
-# Test 2: Peers endpoint
+# Test 2: Advancing heartbeat timestamp
+$totalTests++
+Write-Host "[Test $totalTests] Heartbeat timestamp advances..." -ForegroundColor Yellow -NoNewline
+try {
+    # First heartbeat
+    $response1 = Invoke-WebRequest -Uri "$BaseUrl/api/mesh/heartbeat" -Method GET -UseBasicParsing -TimeoutSec 5
+    $json1 = $response1.Content | ConvertFrom-Json
+    $ts1 = $json1.ts
+    $header1 = $response1.Headers["X-SEC-COMMS-MODE"]
+    
+    # Wait 6-7 seconds (longer than 5s heartbeat interval)
+    Start-Sleep -Seconds 6
+    
+    # Second heartbeat
+    $response2 = Invoke-WebRequest -Uri "$BaseUrl/api/mesh/heartbeat" -Method GET -UseBasicParsing -TimeoutSec 5
+    $json2 = $response2.Content | ConvertFrom-Json
+    $ts2 = $json2.ts
+    $header2 = $response2.Headers["X-SEC-COMMS-MODE"]
+    
+    # Verify timestamp advanced
+    if ($ts2 -gt $ts1 -and $header1 -and $header2) {
+        Write-Host " PASS" -ForegroundColor Green
+        $passedTests++
+        $results += @{
+            Name    = "Heartbeat timestamp advances"
+            Status  = "PASS"
+            Details = "Timestamp advanced from $ts1 to $ts2, X-SEC-COMMS-MODE present"
+        }
+    }
+    else {
+        Write-Host " FAIL (timestamp did not advance or missing header)" -ForegroundColor Red
+        $failedTests++
+        $results += @{
+            Name    = "Heartbeat timestamp advances"
+            Status  = "FAIL"
+            Details = "ts1: $ts1, ts2: $ts2, header1: $header1, header2: $header2"
+        }
+    }
+}
+catch {
+    if ($_.Exception.Message -match "Unable to connect|connection") {
+        Write-Host " SKIP (server not running)" -ForegroundColor DarkGray
+        $results += @{
+            Name    = "Heartbeat timestamp advances"
+            Status  = "SKIP"
+            Details = "Dev server not running at $BaseUrl"
+        }
+    }
+    else {
+        Write-Host " FAIL ($($_.Exception.Message))" -ForegroundColor Red
+        $failedTests++
+        $results += @{
+            Name    = "Heartbeat timestamp advances"
+            Status  = "FAIL"
+            Details = $_.Exception.Message
+        }
+    }
+}
+
+# Test 3: Peers endpoint
 $results += Test-MeshEndpoint -Name "Mesh peers endpoint" -Url "$BaseUrl/api/mesh/peers" -ExpectedField "peers"
 
 # Summary

@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
   try {
     const body = (await request.json()) as ChatRequest;
-    const { message } = body;
+    const { message, agentId } = body;
 
     if (!message || message.trim().length === 0) {
       return new Response("Missing or empty message", { status: 400 });
@@ -38,6 +38,13 @@ export async function POST(request: Request) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
+          // Emit agent metadata at stream start if agentId provided
+          if (agentId) {
+            controller.enqueue(
+              encoder.encode(`event: agent\ndata: ${agentId}\n\n`)
+            );
+          }
+
           if (isLocalOnly()) {
             // Local-only mode: use Ollama
             await streamOllama(message, controller, encoder);
