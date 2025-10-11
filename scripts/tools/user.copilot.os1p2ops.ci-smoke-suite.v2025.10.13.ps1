@@ -307,17 +307,19 @@ $counter = 1
 foreach ($result in $results) {
     $status = $result.Status
     $emoji = switch ($status) {
-        "PASS" { "✅" }
-        "FAIL" { "❌" }
-        "SKIP" { "⏭️" }
-        "WARN" { "⚠️" }
-        default { "❓" }
+        "PASS" { "[PASS]" }
+        "FAIL" { "[FAIL]" }
+        "SKIP" { "[SKIP]" }
+        "WARN" { "[WARN]" }
+        default { "[????]" }
     }
-    $reportContent += "`n| $counter | $($result.Name) | $emoji $status | $($result.Details) |"
+    $name = $result.Name
+    $details = $result.Details
+    $reportContent += [Environment]::NewLine + "| $counter | $name | $emoji | $details |"
     $counter++
 }
 
-$reportContent += @"
+$notesSection = @"
 
 
 ---
@@ -327,6 +329,12 @@ $reportContent += @"
 - **SKIP** status for endpoints indicates dev server not running (expected in CI without server start)
 - **WARN** status requires manual review but does not block CI
 - Run with dev server active: ``npm run dev:web-ui`` before executing this script
+"@
+
+$reportContent += $notesSection
+
+$recommendationsSection = @"
+
 
 ---
 
@@ -350,6 +358,8 @@ $reportContent += @"
 **Report Generated**: $Timestamp  
 **Script**: ``scripts/tools/user.copilot.os1p2ops.ci-smoke-suite.v2025.10.13.ps1``
 "@
+
+$reportContent += $recommendationsSection
 
 # Write report to file
 try {
