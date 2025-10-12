@@ -284,6 +284,30 @@ Expects `PASS (3/3)` + report in `docs/reports/user.codex.os1p2telemetry.metrics
 
 **Git Policy**: Token JSON is **not** in `.gitignore` by default—commit if you want team consistency, or add `apps/web-ui/config/tokens.json` to `.gitignore` for local overrides.
 
+### Guardian Telemetry Job (CI Integration)
+
+The **telemetry-smoke** job runs automatically in CI when `DEV_SERVER_URL` is set:
+
+**Local Execution** (manual):
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.codex.os1p2telemetry.metrics-smoke.v2025.10.13.ps1
+```
+
+**CI Behavior**:
+- ✅ **PASS** (exit 0): All tests passed → build continues
+- ⚠️ **SKIP** (exit 2): Dev server unavailable → warning logged, build continues
+- ❌ **FAIL** (exit 1): Contract violation → build fails, PR blocked
+
+**Setup**:
+1. Set `DEV_SERVER_URL` in **Settings → Secrets and variables → Actions → Variables**
+2. Value: Preview deployment URL (e.g., `https://preview-abc123.vercel.app`)
+3. Job auto-triggers on PR/push when variable is set
+
+**Documentation**:
+- **CI Spec**: `docs/policies/user.copilot.os1p2telemetry.guardian-ci-spec.v2025.10.13.md`
+- **Contract Validation**: `docs/reports/user.copilot.os1p2telemetry.contract-validation.v2025.10.13.md`
+- **Metrics Spec**: `docs/policies/user.codex.os1p2telemetry.metrics-spec.v2025.10.13.md`
+
 
 ### Template Linkage (v2025.09.17)
 
