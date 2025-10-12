@@ -2,7 +2,7 @@
   "_comment": "X-Tier1: user\nX-Agent: copilot\nX-Domain: os1universe\nX-Purpose: genesis-app-registry\nX-Version: v2025.10.12\nX-Policy: filename+header compliance required",
   "_metadata": {
     "description": "Machine-readable registry of The Genesis Series applications",
-    "last_updated": "2025-10-12"
+    "last_updated": "2025-10-13"
   },
   "tier1": [
     {
@@ -14,6 +14,7 @@
       "status": "mvp",
       "stage": "active",
       "telemetry": true,
+      "tokens": "runtime",
       "route": "/aurora",
       "api": "/api/aurora/health",
       "seccomms": ["alpha", "epsilon", "zeta", "eta"],
@@ -68,6 +69,7 @@
       "status": "mvp",
       "stage": "active",
       "telemetry": true,
+      "tokens": "runtime",
       "route": "/lexicore",
       "api": "/api/lexicore/health",
       "seccomms": ["alpha", "delta", "epsilon", "zeta", "eta"],
