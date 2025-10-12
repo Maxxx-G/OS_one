@@ -1,17 +1,43 @@
 name: Zero-Tolerance Guardian (Blocking Mode)
 on:
-    workflow_dispatch: # Manual trigger available
-    pull_request:      # Auto-run on PRs
-    push:
-      branches: [main, codex/ci-exercise] # Auto-run on push to main/codex branches
+  workflow_dispatch: # Manual trigger available
+  pull_request: # Auto-run on PRs
+  push:
+    branches: [main] # Auto-run on push to main
 jobs:
-    guard:
-        runs-on: windows-latest
-        steps:
-            - uses: actions/checkout@v4
-            - uses: actions/setup-node@v4
-              with: { node-version: "18" }
-            - name: Run Zero-Tolerance Guardian
-              run: node scripts/checks/stb_guard.mjs
-            - name: STB Header Validator
-              run: npm run validate:stb
+  guard:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "18" }
+      - name: Run Zero-Tolerance Guardian
+        run: node scripts/checks/stb_guard.mjs
+      - name: STB Header Validator
+        run: npm run validate:stb
+
+  telemetry-smoke:
+    runs-on: windows-latest
+    if: vars.DEV_SERVER_URL != ''
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run η Telemetry Metrics Smoke Test
+        shell: pwsh
+        run: |
+          $exitCode = 0
+          try {
+            & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.codex.os1p2telemetry.metrics-smoke.v2025.10.13.ps1
+            $exitCode = $LASTEXITCODE
+          } catch {
+            $exitCode = 1
+          }
+          
+          if ($exitCode -eq 2) {
+            Write-Host "::warning::Telemetry smoke test SKIPPED (dev server not available)"
+            exit 0
+          } elseif ($exitCode -ne 0) {
+            Write-Host "::error::Telemetry smoke test FAILED"
+            exit 1
+          }
+          Write-Host "Telemetry smoke test PASSED"
+
