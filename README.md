@@ -255,6 +255,36 @@ app builds; feature verified; no regressions
 - WS input: `NEXT_PUBLIC_FEATURE_WS_INPUT=1`
 - Logs: `apps/web-ui/logs/runtime/*.jsonl`
 
+### Design Tokens (Phase 2.1 — η)
+
+Runtime token system with hot-swap via JSON:
+
+**Quick Start**
+1. Place your token definitions:
+   - Create or edit `apps/web-ui/config/tokens.json` with colors, spacing, radius
+   - Example:
+     ```json
+     {
+       "colors": { "bg": "#0b0f14", "fg": "#e6edf3", "accent": "#7c93ff", "danger": "#ff6b6b", "muted": "#1b222c" },
+       "spacing": { "xs": 4, "s": 8, "m": 12, "l": 16 },
+       "radius": { "sm": 6, "md": 10, "lg": 14 }
+     }
+     ```
+2. Sync from Figma export (optional):
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.codex.os1p2design.tokens-sync.v2025.10.13.ps1 -Input <your_figma_export.json>
+   ```
+3. Restart dev server → tokens apply immediately via CSS vars (`--accent`, `--spacing-m`, etc.)
+
+**η Telemetry Smoke** (validates `/api/telemetry/metrics`):
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.codex.os1p2telemetry.metrics-smoke.v2025.10.13.ps1
+```
+Expects `PASS (3/3)` + report in `docs/reports/user.codex.os1p2telemetry.metrics-smoke.v2025.10.13.md`.
+
+**Git Policy**: Token JSON is **not** in `.gitignore` by default—commit if you want team consistency, or add `apps/web-ui/config/tokens.json` to `.gitignore` for local overrides.
+
+
 ### Template Linkage (v2025.09.17)
 
 Project plan now explicitly references governing templates for execution, planning, and agent/system behavior.
@@ -321,3 +351,6 @@ Project plan now explicitly references governing templates for execution, planni
 \n## Genesis Quick Links (local dev)
 
 - AuroraWire (News Dashboard): http://localhost:4000/aurora (health-checked UI)
+
+## Genesis Quick Links (local dev)
+ - AuroraWire Feed (MVP API): http://localhost:4000/api/aurora/feed
