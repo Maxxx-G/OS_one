@@ -156,7 +156,8 @@
     "theta": {
       "name": "Autonomic Regulation",
       "description": "System homeostasis via load/ethics/resources",
-      "status": "planned"
+      "status": "in-progress",
+      "phase3_init": "2025-10-13"
     },
     "iota": {
       "name": "Multi-Tenant Subscription",
