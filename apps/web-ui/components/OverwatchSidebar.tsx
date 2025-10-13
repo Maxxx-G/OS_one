@@ -20,11 +20,11 @@ export default function OverwatchSidebar() {
   }, []);
 
   return (
-    <>
+    <div className="pointer-events-none">
       {/* Skinny tab */}
       <button
         onClick={() => overwatchUI.toggle()}
-        className={`fixed z-50 bg-zinc-800 hover:bg-zinc-700 text-white px-1 py-3 text-xs font-mono transition-colors ${
+        className={`fixed z-20 pointer-events-auto bg-zinc-800 hover:bg-zinc-700 text-white px-1 py-3 text-xs font-mono transition-colors ${
           side === 'right' ? 'right-0 top-1/3 rounded-l' : ''
         }${side === 'left' ? 'left-0 top-1/3 rounded-r' : ''
         }${side === 'top' ? 'top-0 left-1/2 -translate-x-1/2 rounded-b' : ''
@@ -36,11 +36,12 @@ export default function OverwatchSidebar() {
 
       {/* Floating panel */}
       <div
-        className={`fixed z-40 bg-zinc-900 border-zinc-700 shadow-2xl transition-all duration-300 ${
+        className={`fixed z-20 pointer-events-auto bg-zinc-900 border-zinc-700 shadow-2xl transition-all duration-300 ${
           side === 'right' ? `right-0 top-0 h-screen w-80 border-l rounded-l-2xl ${open ? 'translate-x-0' : 'translate-x-full'}` : ''
         }${side === 'left' ? `left-0 top-0 h-screen w-80 border-r rounded-r-2xl ${open ? 'translate-x-0' : '-translate-x-full'}` : ''
         }${side === 'top' ? `top-0 left-0 w-full h-64 border-b rounded-b-2xl ${open ? 'translate-y-0' : '-translate-y-full'}` : ''
         }${side === 'bottom' ? `bottom-0 left-0 w-full h-64 border-t rounded-t-2xl ${open ? 'translate-y-0' : 'translate-y-full'}` : ''}`}
+        aria-hidden={!open}
       >
         <div className="p-6 h-full flex flex-col gap-4">
           {/* Header */}
@@ -101,6 +102,6 @@ export default function OverwatchSidebar() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

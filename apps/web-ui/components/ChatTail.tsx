@@ -80,7 +80,7 @@ export default function ChatTail() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-3 right-3 z-30 pointer-events-none">
       {/* Toggle button */}
       <button
         onClick={() => setOpen(!open)}
@@ -91,6 +91,7 @@ export default function ChatTail() {
           bg-white shadow-md
           hover:bg-gray-50
           transition-colors
+          pointer-events-auto
         "
         title="Toggle debug tail panel"
         type="button"
@@ -116,6 +117,7 @@ export default function ChatTail() {
             rounded-md 
             shadow-lg
             p-3
+            pointer-events-auto
           "
         >
           {/* Header */}
