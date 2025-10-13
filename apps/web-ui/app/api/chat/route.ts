@@ -50,10 +50,11 @@ export async function POST(request: Request) {
         }
       ]
     };
+    // Safe render: JSON for backwards compat, text/plain fallback supported
     return new Response(JSON.stringify(mockReply), {
       status: 200,
       headers: { 
-        "content-type": "application/json",
+        "content-type": "application/json; charset=utf-8",
         "X-OS1-Trace": `mode=mock; attempts=1; mock=1`
       }
     });

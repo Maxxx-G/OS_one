@@ -284,50 +284,68 @@ export default function ChatPage() {
 
       const contentType = response.headers.get("content-type") || "";
 
-      if (response.body && isStreamingContent(contentType)) {
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        let aggregated = "";
+      // Safe render: try streaming first, fallback to buffered
+      try {
+        if (response.body && isStreamingContent(contentType)) {
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+          let aggregated = "";
 
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split(/\r?\n/);
-          buffer = lines.pop() || "";
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split(/\r?\n/);
+            buffer = lines.pop() || "";
 
-          for (const line of lines) {
-            if (!line.trim()) continue;
-            const fragment = parseLine(line);
-            if (!fragment) continue;
+            for (const line of lines) {
+              if (!line.trim()) continue;
+              const fragment = parseLine(line);
+              if (!fragment) continue;
+              aggregated += fragment;
+              updateAssistant(assistantIndex, aggregated);
+            }
+          }
+
+          if (buffer.trim()) {
+            const fragment = parseLine(buffer);
             aggregated += fragment;
             updateAssistant(assistantIndex, aggregated);
           }
-        }
 
-        if (buffer.trim()) {
-          const fragment = parseLine(buffer);
-          aggregated += fragment;
-          updateAssistant(assistantIndex, aggregated);
+          if (!aggregated) {
+            updateAssistant(assistantIndex, "(no content)");
+          }
+        } else {
+          // Buffered response: try JSON parse, fallback to raw text
+          const text = await response.text();
+          try {
+            const data = JSON.parse(text);
+            const reply =
+              data?.choices?.[0]?.message?.content ??
+              data?.choices?.[0]?.delta?.content ??
+              data?.content ??
+              data?.message ??
+              text;
+            updateAssistant(assistantIndex, String(reply));
+          } catch {
+            // JSON parse failed, render raw text
+            updateAssistant(assistantIndex, text || "(empty response)");
+          }
         }
-
-        if (!aggregated) {
-          updateAssistant(assistantIndex, "(no content)");
-        }
-      } else {
-        const text = await response.text();
+      } catch (streamError) {
+        // Streaming failed, try fallback to text()
+        emitTail(`[warn] stream error, fallback to text()`);
         try {
-          const data = JSON.parse(text);
-          const reply =
-            data?.choices?.[0]?.message?.content ??
-            data?.choices?.[0]?.delta?.content ??
-            data?.content ??
-            data?.message ??
-            text;
-          updateAssistant(assistantIndex, String(reply));
+          const fallbackText = await response.text();
+          if (fallbackText) {
+            updateAssistant(assistantIndex, fallbackText);
+          } else {
+            updateAssistant(assistantIndex, "(stream error: no content)");
+          }
         } catch {
-          updateAssistant(assistantIndex, text);
+          updateAssistant(assistantIndex, "(render error: stream unavailable)");
         }
       }
     } catch (error) {
