@@ -128,3 +128,26 @@ jobs:
           }
           Write-Host "All docs STB files passed validation ✓"
 
+  theta_smoke:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: WS Probe
+        shell: powershell
+        run: |
+          Write-Host "Running WebSocket probe..."
+          & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.codex.os1p3.ws-probe.v2025.10.13.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::WebSocket probe failed - endpoint may not be available"
+            exit 1
+          }
+      - name: θ Self-Heal Smoke
+        shell: powershell
+        run: |
+          Write-Host "Running θ-layer self-heal smoke tests..."
+          & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.codex.os1p3.theta-self-heal-smoke-updated.v2025.10.13.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::Theta smoke tests failed"
+            exit 1
+          }
+
