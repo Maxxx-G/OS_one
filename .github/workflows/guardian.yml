@@ -151,3 +151,50 @@ jobs:
             exit 1
           }
 
+  ui_chat_smoke:
+    runs-on: windows-latest
+    needs: [validate-stb]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - name: Install dependencies
+        shell: powershell
+        run: |
+          Write-Host "Installing web-ui dependencies..."
+          npm install --prefix apps/web-ui
+      - name: Start dev server (web-ui)
+        shell: powershell
+        run: |
+          Write-Host "Starting web-ui dev server..."
+          $env:CHAT_BACKEND_URL = "http://localhost:7700/v1/chat"
+          Start-Job -ScriptBlock {
+            Set-Location $using:PWD
+            $env:CHAT_BACKEND_URL = "http://localhost:7700/v1/chat"
+            npm --prefix apps/web-ui run dev
+          } | Out-Null
+          Write-Host "Waiting for server to start..."
+          Start-Sleep -Seconds 12
+      - name: Backend stub check (optional)
+        shell: powershell
+        continue-on-error: true
+        run: |
+          try {
+            $body = @{ messages = @(@{ role = "user"; content = "hi" }) } | ConvertTo-Json -Depth 4
+            Invoke-WebRequest -Method POST -Uri "http://localhost:7700/v1/chat" -Body $body -ContentType "application/json" -UseBasicParsing | Out-Null
+            Write-Host "Backend reachable at :7700"
+          }
+          catch {
+            Write-Host "Backend not reachable (ok if not available in CI)"
+          }
+      - name: Chat smoke test
+        shell: powershell
+        run: |
+          Write-Host "Running chat smoke test..."
+          & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p3.chat-smoke.v2025.10.14.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::Chat smoke test failed"
+            exit 1
+          }
+
