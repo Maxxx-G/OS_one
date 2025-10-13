@@ -10,34 +10,121 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: "18" }
+        with:
+          node-version: "18"
       - name: Run Zero-Tolerance Guardian
         run: node scripts/checks/stb_guard.mjs
       - name: STB Header Validator
         run: npm run validate:stb
 
-  telemetry-smoke:
+  telemetry-contract-smoke:
     runs-on: windows-latest
     if: vars.DEV_SERVER_URL != ''
     steps:
       - uses: actions/checkout@v4
-      - name: Run η Telemetry Metrics Smoke Test
+      - name: Run Telemetry Metrics Contract Smoke
+        env:
+          DEV_SERVER_URL: ${{ vars.DEV_SERVER_URL }}
         shell: pwsh
         run: |
           $exitCode = 0
           try {
-            & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.codex.os1p2telemetry.metrics-smoke.v2025.10.13.ps1
+            $baseUrl = $env:DEV_SERVER_URL
+            if ([string]::IsNullOrWhiteSpace($baseUrl)) {
+              Write-Host "::warning::DEV_SERVER_URL not provided; skipping telemetry contract smoke"
+              exit 0
+            }
+            & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.codex.os1p2telemetry.contract-smoke.v2025.10.13.ps1 -BaseUrl $baseUrl
             $exitCode = $LASTEXITCODE
           } catch {
             $exitCode = 1
           }
-          
+
           if ($exitCode -eq 2) {
-            Write-Host "::warning::Telemetry smoke test SKIPPED (dev server not available)"
+            Write-Host "::warning::Telemetry contract smoke SKIPPED (dev server not available)"
             exit 0
           } elseif ($exitCode -ne 0) {
-            Write-Host "::error::Telemetry smoke test FAILED"
+            Write-Host "::error::Telemetry contract smoke FAILED"
             exit 1
           }
-          Write-Host "Telemetry smoke test PASSED"
+
+          Write-Host "Telemetry contract smoke PASSED"
+
+  validate-stb:
+    runs-on: windows-latest
+    env:
+      STRICT: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate STB Files
+        shell: pwsh
+        run: |
+          Write-Host "Scanning for STB files (*.os1p*.md)..."
+          $stbFiles = Get-ChildItem -Recurse -Include "*.os1p*.md" -File | Select-Object -ExpandProperty FullName
+
+          if ($stbFiles.Count -eq 0) {
+            Write-Host "No STB files found. Skipping validation."
+            exit 0
+          }
+
+          Write-Host "Found $($stbFiles.Count) STB file(s) to validate"
+
+          $failed = @()
+          foreach ($file in $stbFiles) {
+            Write-Host "Validating: $file"
+            & powershell -NoProfile -ExecutionPolicy Bypass -File ops/check_plan_templates.ps1 -Path $file
+            if ($LASTEXITCODE -ne 0) {
+              $failed += $file
+            }
+          }
+
+          if ($failed.Count -gt 0) {
+            Write-Host "::error::STB validation failed for $($failed.Count) file(s)"
+            $failed | ForEach-Object { Write-Host "::error::  - $_" }
+            exit 1
+          }
+
+          Write-Host "All STB files passed validation ✓"
+
+  docs_strict:
+    runs-on: windows-latest
+    env:
+      STRICT: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Docs Strict Sweep
+        shell: pwsh
+        run: |
+          Write-Host "Running docs STRICT sweep for forbidden ports and multi-fence violations..."
+          & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p3.docs-strict-sweep.v2025.10.13.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::Docs STRICT sweep found violations"
+            exit 1
+          }
+      - name: Validate STB format inside docs (STRICT)
+        shell: pwsh
+        run: |
+          Write-Host "Validating STB format in docs folder..."
+          $docs = Get-ChildItem -Recurse -File -Path docs -Include *.md, *.mdx | Select-Object -ExpandProperty FullName
+          if ($docs.Count -eq 0) {
+            Write-Host "No markdown files found in docs. Skipping."
+            exit 0
+          }
+          $failed = @()
+          foreach ($f in $docs) {
+            # Only validate files matching STB naming pattern
+            if ($f -match '\.os1p\d+') {
+              Write-Host "Validating: $f"
+              & powershell -NoProfile -ExecutionPolicy Bypass -File ops/check_plan_templates.ps1 -Path $f
+              if ($LASTEXITCODE -ne 0) {
+                $failed += $f
+              }
+            }
+          }
+          if ($failed.Count -gt 0) {
+            Write-Host "::error::STB validation failed for $($failed.Count) file(s) in docs"
+            $failed | ForEach-Object { Write-Host "::error::  - $_" }
+            exit 1
+          }
+          Write-Host "All docs STB files passed validation ✓"
 
