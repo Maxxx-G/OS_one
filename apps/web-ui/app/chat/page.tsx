@@ -8,6 +8,7 @@ import {
   MutableRefObject
 } from "react";
 import { ChatStore } from "@/lib/chat/store";
+import ChatTail from "@/components/ChatTail";
 
 type Message = { role: "user" | "assistant"; content: string };
 type HealthState = { ok: boolean; mock: boolean; url: string };
@@ -55,6 +56,13 @@ function scrollToBottom(ref: MutableRefObject<HTMLDivElement | null>) {
     top: ref.current.scrollHeight,
     behavior: "smooth"
   });
+}
+
+// Helper to emit debug tail events
+function emitTail(message: string) {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("os1-tail", { detail: message }));
+  }
 }
 
 export default function ChatPage() {
@@ -208,6 +216,11 @@ export default function ChatPage() {
       (window as any).os1LastPrompt = prompt;
     }
 
+    // Emit tail event: send started
+    const mode = health?.mock ? "mock" : (health?.ok ? "backend" : "unavailable");
+    const backend = health?.url || "unknown";
+    emitTail(`[send] prompt="${prompt.substring(0, 40)}${prompt.length > 40 ? '...' : ''}" mode=${mode} backend=${backend}`);
+
     let assistantIndex = -1;
     setMessages((prev) => {
       const next = [
@@ -235,11 +248,16 @@ export default function ChatPage() {
         cache: "no-store"
       });
 
+      // Emit tail event: response received
+      const traceHeader = response.headers.get("X-OS1-Trace") || "-";
+      emitTail(`[recv] status=${response.status} trace=${traceHeader}`);
+
       const attemptHeader = response.headers.get(RETRY_HEADER);
       if (attemptHeader) {
         const attemptNumber = Number(attemptHeader);
         if (Number.isFinite(attemptNumber) && attemptNumber > 1) {
           setBanner({ kind: "retry", attempt: attemptNumber, total: 3 });
+          emitTail(`[retry] attempt=${attemptNumber}/3`);
         }
       } else {
         setBanner({ kind: "none" });
@@ -251,6 +269,11 @@ export default function ChatPage() {
             kind: "timeout",
             detail: "Request timed out after retries"
           });
+          emitTail(`[timeout] 504 after retries`);
+        } else if (response.status >= 500) {
+          emitTail(`[error] HTTP ${response.status}`);
+        } else {
+          emitTail(`[error] HTTP ${response.status}`);
         }
         updateAssistant(
           assistantIndex,
@@ -309,6 +332,7 @@ export default function ChatPage() {
       }
     } catch (error) {
       const reason = error instanceof Error ? error.message : "network";
+      emitTail(`[error] ${reason}`);
       setBanner({
         kind: "timeout",
         detail: `Request failed after retries (${reason})`
@@ -434,6 +458,7 @@ export default function ChatPage() {
           </div>
         </div>
       </div>
+      <ChatTail />
     </div>
   );
 }
