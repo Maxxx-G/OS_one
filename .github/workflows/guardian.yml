@@ -310,3 +310,31 @@ jobs:
             Write-Host "::error::Canary health check failed"
             exit 1
           }
+
+  ops_stabilize_check:
+    runs-on: windows-latest
+    if: github.event_name == 'workflow_dispatch'
+    needs: [guard]
+    env:
+      CHAT_BACKEND_MOCK: "1"
+      CHAT_BACKEND_MODE: "auto"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - name: Install dependencies
+        shell: powershell
+        run: |
+          Write-Host "Installing web-ui dependencies..."
+          npm install --prefix apps/web-ui
+      - name: Run Stabilize Check
+        shell: powershell
+        run: |
+          Write-Host "Running ops stabilize check..."
+          & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p3.ops-stabilize.v2025.10.15.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::Stabilize check failed"
+            exit 1
+          }
+
