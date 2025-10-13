@@ -112,5 +112,23 @@ if (Test-Path "scripts/tools/user.copilot.os1p3.chat-contract-check.v2025.10.14.
     }
 }
 
+# Warn if E2E mock test fails when MOCK mode is enabled (do not block commit; CI will enforce)
+if ($env:CHAT_BACKEND_MOCK -eq "1" -and (Test-Path "scripts/tools/user.copilot.os1p3.ui-chat-e2e-mock.v2025.10.14.ps1")) {
+    Write-Host "Running E2E mock test (CHAT_BACKEND_MOCK=1 detected)..." -ForegroundColor Cyan
+    try {
+        & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p3.ui-chat-e2e-mock.v2025.10.14.ps1 2>&1 | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host ""
+            Write-Host "WARNING: E2E mock test failed (exit $LASTEXITCODE)!" -ForegroundColor Yellow
+            Write-Host "  This is a warning only - commit will proceed." -ForegroundColor Gray
+            Write-Host "  However, CI will FAIL if E2E issues persist." -ForegroundColor Red
+            Write-Host ""
+        }
+    }
+    catch {
+        Write-Host "  (E2E mock test skipped - server may not be running)" -ForegroundColor Gray
+    }
+}
+
 exit 0
 

@@ -235,3 +235,39 @@ jobs:
             exit 1
           }
 
+  ui_chat_e2e:
+    runs-on: windows-latest
+    needs: [validate-stb]
+    env:
+      CHAT_BACKEND_MOCK: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - name: Install dependencies
+        shell: powershell
+        run: |
+          Write-Host "Installing web-ui dependencies..."
+          npm install --prefix apps/web-ui
+      - name: Start web-ui (MOCK mode)
+        shell: powershell
+        run: |
+          Write-Host "Starting web-ui dev server with MOCK mode enabled..."
+          $env:CHAT_BACKEND_MOCK = "1"
+          Start-Job -ScriptBlock {
+            Set-Location $using:PWD
+            $env:CHAT_BACKEND_MOCK = "1"
+            npm --prefix apps/web-ui run dev
+          } | Out-Null
+          Write-Host "Waiting for server to start..."
+          Start-Sleep -Seconds 10
+      - name: E2E smoke test (MOCK)
+        shell: powershell
+        run: |
+          Write-Host "Running E2E smoke test in MOCK mode..."
+          & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p3.ui-chat-e2e-mock.v2025.10.14.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::E2E smoke test failed"
+            exit 1
+          }
