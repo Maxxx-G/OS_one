@@ -7,6 +7,7 @@ import {
   useState,
   MutableRefObject
 } from "react";
+import { ChatStore } from "@/lib/chat/store";
 
 type Message = { role: "user" | "assistant"; content: string };
 type HealthState = { ok: boolean; mock: boolean; url: string };
@@ -119,6 +120,39 @@ export default function ChatPage() {
       };
     }
   }, [busy]);
+
+  // Hydrate messages from IndexedDB on mount
+  useEffect(() => {
+    let mounted = true;
+
+    ChatStore.load()
+      .then((storedMessages) => {
+        if (mounted && storedMessages.length > 0) {
+          setMessages(storedMessages);
+          console.log(`[ChatStore] Restored ${storedMessages.length} message(s)`);
+        }
+      })
+      .catch((error) => {
+        console.error("[ChatStore] Hydration failed:", error);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Persist messages to IndexedDB on every change
+  useEffect(() => {
+    if (messages.length > 0) {
+      ChatStore.save(messages)
+        .then(() => {
+          console.debug(`[ChatStore] Saved ${messages.length} message(s)`);
+        })
+        .catch((error) => {
+          console.error("[ChatStore] Persistence failed:", error);
+        });
+    }
+  }, [messages]);
 
   function statusPill(state: HealthState | null) {
     if (!state) {
@@ -375,13 +409,29 @@ export default function ChatPage() {
             placeholder="Type a message..."
             disabled={busy}
           />
-          <button
-            className="border border-sky-400 rounded-xl px-4 py-2 text-sky-200 disabled:opacity-50"
-            onClick={() => void send()}
-            disabled={busy}
-          >
-            {busy ? "Sending..." : "Send"}
-          </button>
+          <div className="flex flex-col gap-2">
+            <button
+              className="border border-sky-400 rounded-xl px-4 py-2 text-sky-200 disabled:opacity-50"
+              onClick={() => void send()}
+              disabled={busy}
+            >
+              {busy ? "Sending..." : "Send"}
+            </button>
+            <button
+              className="border border-gray-400 rounded-xl px-4 py-2 text-gray-300 text-sm disabled:opacity-50 hover:bg-white/5"
+              onClick={async () => {
+                if (confirm("Clear all messages? This cannot be undone.")) {
+                  await ChatStore.clear();
+                  setMessages([]);
+                  console.log("[ChatStore] Cleared all messages");
+                }
+              }}
+              disabled={busy || messages.length === 0}
+              title="Clear chat history from storage"
+            >
+              Clear
+            </button>
+          </div>
         </div>
       </div>
     </div>
