@@ -4,6 +4,8 @@ on:
   pull_request: # Auto-run on PRs
   push:
     branches: [main] # Auto-run on push to main
+  schedule:
+    - cron: "0 * * * *" # Hourly canary on main
 jobs:
   guard:
     runs-on: windows-latest
@@ -269,5 +271,42 @@ jobs:
           & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p3.ui-chat-e2e-mock.v2025.10.14.ps1
           if ($LASTEXITCODE -ne 0) {
             Write-Host "::error::E2E smoke test failed"
+            exit 1
+          }
+
+  ui_chat_canary:
+    if: github.event_name == 'schedule' && github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    env:
+      CHAT_BACKEND_MOCK: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - name: Install dependencies
+        shell: powershell
+        run: |
+          Write-Host "Installing web-ui dependencies..."
+          npm install --prefix apps/web-ui
+      - name: Start web-ui (MOCK mode)
+        shell: powershell
+        run: |
+          Write-Host "Starting web-ui dev server with MOCK mode enabled..."
+          $env:CHAT_BACKEND_MOCK = "1"
+          Start-Job -ScriptBlock {
+            Set-Location $using:PWD
+            $env:CHAT_BACKEND_MOCK = "1"
+            npm --prefix apps/web-ui run dev
+          } | Out-Null
+          Write-Host "Waiting for server to start..."
+          Start-Sleep -Seconds 10
+      - name: Canary health check
+        shell: powershell
+        run: |
+          Write-Host "Running hourly canary check..."
+          & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p3.ui-chat-canary.v2025.10.14.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::Canary health check failed"
             exit 1
           }
