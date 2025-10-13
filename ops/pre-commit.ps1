@@ -94,5 +94,23 @@ if (Test-Path "scripts/tools/user.copilot.os1p3.docs-strict-sweep.v2025.10.13.ps
     }
 }
 
+# Warn if chat contract check fails (do not block commit; CI will enforce)
+if (Test-Path "scripts/tools/user.copilot.os1p3.chat-contract-check.v2025.10.14.ps1") {
+    Write-Host "Running chat contract check..." -ForegroundColor Cyan
+    try {
+        & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p3.chat-contract-check.v2025.10.14.ps1 2>&1 | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host ""
+            Write-Host "WARNING: Chat contract check failed (exit $LASTEXITCODE)!" -ForegroundColor Yellow
+            Write-Host "  This is a warning only - commit will proceed." -ForegroundColor Gray
+            Write-Host "  However, CI will FAIL if contract violations persist." -ForegroundColor Red
+            Write-Host ""
+        }
+    }
+    catch {
+        Write-Host "  (Chat contract check skipped - server may not be running)" -ForegroundColor Gray
+    }
+}
+
 exit 0
 

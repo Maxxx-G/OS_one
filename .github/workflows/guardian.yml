@@ -198,3 +198,40 @@ jobs:
             exit 1
           }
 
+  ui_chat_contract:
+    runs-on: windows-latest
+    needs: [ui_chat_smoke]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - name: Ensure web-ui is running
+        shell: powershell
+        run: |
+          Write-Host "Ensuring web-ui dev server is running..."
+          # Check if already running, otherwise start fresh
+          try {
+            Invoke-WebRequest -Uri "http://localhost:4000" -UseBasicParsing -TimeoutSec 2 | Out-Null
+            Write-Host "Server already running"
+          }
+          catch {
+            Write-Host "Starting fresh dev server..."
+            $env:CHAT_BACKEND_URL = "http://localhost:7700/v1/chat"
+            Start-Job -ScriptBlock {
+              Set-Location $using:PWD
+              $env:CHAT_BACKEND_URL = "http://localhost:7700/v1/chat"
+              npm --prefix apps/web-ui run dev
+            } | Out-Null
+            Start-Sleep -Seconds 10
+          }
+      - name: Chat contract check
+        shell: powershell
+        run: |
+          Write-Host "Running chat contract check..."
+          & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p3.chat-contract-check.v2025.10.14.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::Chat contract check failed"
+            exit 1
+          }
+
