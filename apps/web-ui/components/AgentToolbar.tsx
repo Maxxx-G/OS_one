@@ -6,6 +6,7 @@ import QuickTest from './QuickTest';
 import ContextPill from './ContextPill';
 import SecCommsPill from './SecCommsPill';
 import SessionControls from './SessionControls';
+import HealthPill from './HealthPill';
 
 function openOnboarding() {
   if (typeof window !== 'undefined') {
@@ -48,6 +49,7 @@ export default function AgentToolbar() {
           </button>{' '}
           <QuickTest />
           <SecCommsPill />
+          <HealthPill />
           <button
             type="button"
             onClick={openOnboarding}
