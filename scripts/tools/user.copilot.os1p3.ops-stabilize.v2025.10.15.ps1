@@ -6,7 +6,7 @@
 .DESCRIPTION
   Sets CHAT_BACKEND_MOCK=1, starts web-ui dev server, probes /api/chat/health,
   sends a minimal POST to /api/chat, and prints GUARDIAN_SUMMARY PASS/FAIL.
-  
+
   This is the single command to verify the entire chat stack is operational
   in MOCK mode before attempting real backend connections.
 
@@ -25,126 +25,152 @@
   Exit 0 (PASS) or 81 (FAIL)
 #>
 
+[CmdletBinding()]
+param()
+
 $ErrorActionPreference = "Stop"
 
-Write-Host "========================================" -ForegroundColor Cyan
+function Write-Separator {
+    Write-Host "========================================" -ForegroundColor Cyan
+}
+
+function Write-Step($index, $message) {
+    Write-Host ("[{0}/5] {1}" -f $index, $message) -ForegroundColor Yellow
+}
+
+Write-Separator
 Write-Host "OS1 STABILIZE: Emergency Health Check" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
+Write-Separator
 Write-Host ""
 
-# Step 1: Enable MOCK mode
-Write-Host "[1/5] Enabling MOCK mode..." -ForegroundColor Yellow
+# Step 1
+Write-Step -index 1 -message "Enabling MOCK mode..."
 $env:CHAT_BACKEND_MOCK = "1"
 $env:CHAT_BACKEND_MODE = "auto"
 Write-Host "      CHAT_BACKEND_MOCK=1" -ForegroundColor Gray
 Write-Host "      CHAT_BACKEND_MODE=auto" -ForegroundColor Gray
 Write-Host ""
 
-# Step 2: Check if web-ui is already running
-Write-Host "[2/5] Checking web-ui status..." -ForegroundColor Yellow
+# Step 2
+Write-Step -index 2 -message "Checking web-ui status..."
 $alreadyRunning = $false
 try {
-    $testReq = Invoke-WebRequest -UseBasicParsing -Uri "http://localhost:4000" -Method GET -TimeoutSec 2 -ErrorAction SilentlyContinue
+    $testReq = Invoke-WebRequest -UseBasicParsing -Uri "http://localhost:4000" -Method GET -TimeoutSec 2 -ErrorAction Stop
     if ($testReq.StatusCode -eq 200) {
         $alreadyRunning = $true
-        Write-Host "      ✓ Web-UI already running on :4000" -ForegroundColor Green
+        Write-Host "      [PASS] Web-UI already running on :4000" -ForegroundColor Green
     }
-} catch {
+}
+catch {
     Write-Host "      Web-UI not detected, will start..." -ForegroundColor Gray
 }
 Write-Host ""
 
-# Step 3: Start web-ui if needed
+# Step 3
 if (-not $alreadyRunning) {
-    Write-Host "[3/5] Starting web-ui dev server..." -ForegroundColor Yellow
+    Write-Step -index 3 -message "Starting web-ui dev server..."
     $processParams = @{
-        FilePath = "npm"
+        FilePath     = "npm"
         ArgumentList = @("run", "-w", "apps/web-ui", "dev")
-        NoNewWindow = $true
-        PassThru = $true
+        NoNewWindow  = $true
+        PassThru     = $true
     }
+
     $webUiProcess = Start-Process @processParams
     Write-Host "      Process ID: $($webUiProcess.Id)" -ForegroundColor Gray
     Write-Host "      Waiting 8 seconds for startup..." -ForegroundColor Gray
     Start-Sleep -Seconds 8
-} else {
-    Write-Host "[3/5] Skipping startup (already running)" -ForegroundColor Yellow
+}
+else {
+    Write-Step -index 3 -message "Skipping startup (already running)"
 }
 Write-Host ""
 
-# Step 4: Probe /api/chat/health
-Write-Host "[4/5] Probing /api/chat/health..." -ForegroundColor Yellow
+# Step 4
+Write-Step -index 4 -message "Probing /api/chat/health..."
 $healthOk = $false
 $healthUrl = "http://localhost:4000/api/chat/health"
 try {
-    $healthResponse = Invoke-WebRequest -UseBasicParsing -Uri $healthUrl -Method GET -TimeoutSec 5
+    $healthResponse = Invoke-WebRequest -UseBasicParsing -Uri $healthUrl -Method GET -TimeoutSec 5 -ErrorAction Stop
     $healthJson = $healthResponse.Content | ConvertFrom-Json
-    
-    if ($healthJson.ok -eq $true) {
+
+    if ($healthJson.ok) {
         $healthOk = $true
-        Write-Host "      ✓ Health check PASS" -ForegroundColor Green
+        Write-Host "      [PASS] Health check ok" -ForegroundColor Green
         Write-Host "      Backend: $($healthJson.url)" -ForegroundColor Gray
-        Write-Host "      Mock: $($healthJson.mock)" -ForegroundColor Gray
-    } else {
-        Write-Host "      ✗ Health check returned ok=false" -ForegroundColor Red
+        Write-Host "      Mock:    $($healthJson.mock)" -ForegroundColor Gray
     }
-} catch {
-    Write-Host "      ✗ Health endpoint unreachable: $($_.Exception.Message)" -ForegroundColor Red
+    else {
+        Write-Host "      [FAIL] Health check returned ok=false" -ForegroundColor Red
+    }
+}
+catch {
+    Write-Host "      [FAIL] Health endpoint unreachable: $($_.Exception.Message)" -ForegroundColor Red
 }
 Write-Host ""
 
-# Step 5: Send minimal chat POST
-Write-Host "[5/5] Testing /api/chat endpoint..." -ForegroundColor Yellow
+# Step 5
+Write-Step -index 5 -message "Testing /api/chat endpoint..."
 $chatOk = $false
 $chatUrl = "http://localhost:4000/api/chat"
 $chatBody = @{
     messages = @(
-        @{
-            role = "user"
-            content = "stabilize test"
-        }
+        @{ role = "user"; content = "stabilize test" }
     )
-} | ConvertTo-Json -Depth 6
+}
+$chatBodyJson = $chatBody | ConvertTo-Json -Depth 6
 
 try {
-    $chatResponse = Invoke-WebRequest -UseBasicParsing -Uri $chatUrl -Method POST -ContentType "application/json" -Body $chatBody -TimeoutSec 10
-    
+    $chatResponse = Invoke-WebRequest -UseBasicParsing -Uri $chatUrl -Method POST -ContentType "application/json" -Body $chatBodyJson -TimeoutSec 10 -ErrorAction Stop
+
     if ($chatResponse.StatusCode -ge 200 -and $chatResponse.StatusCode -lt 300) {
         $chatOk = $true
-        Write-Host "      ✓ Chat endpoint PASS (HTTP $($chatResponse.StatusCode))" -ForegroundColor Green
-        
-        # Try to extract reply content
+        Write-Host "      [PASS] Chat endpoint HTTP $($chatResponse.StatusCode)" -ForegroundColor Green
+
         try {
             $chatJson = $chatResponse.Content | ConvertFrom-Json
-            $reply = $chatJson.choices[0].message.content
-            Write-Host "      Reply: $($reply.Substring(0, [Math]::Min(60, $reply.Length)))..." -ForegroundColor Gray
-        } catch {
+            if ($chatJson -and $chatJson.choices -and $chatJson.choices.Count -gt 0) {
+                $firstChoice = $chatJson.choices[0]
+                if ($firstChoice -and $firstChoice.message -and $firstChoice.message.content) {
+                    $reply = [string]$firstChoice.message.content
+                    if ($reply.Length -gt 0) {
+                        $previewLength = [Math]::Min(60, $reply.Length)
+                        $preview = $reply.Substring(0, $previewLength)
+                        Write-Host "      Reply: $preview..." -ForegroundColor Gray
+                    }
+                }
+            }
+        }
+        catch {
             Write-Host "      Reply: (non-JSON response)" -ForegroundColor Gray
         }
-    } else {
-        Write-Host "      ✗ Chat endpoint returned HTTP $($chatResponse.StatusCode)" -ForegroundColor Red
     }
-} catch {
-    Write-Host "      ✗ Chat endpoint failed: $($_.Exception.Message)" -ForegroundColor Red
+    else {
+        Write-Host "      [FAIL] Chat endpoint returned HTTP $($chatResponse.StatusCode)" -ForegroundColor Red
+    }
+}
+catch {
+    Write-Host "      [FAIL] Chat endpoint failed: $($_.Exception.Message)" -ForegroundColor Red
 }
 Write-Host ""
 
 # Summary
-Write-Host "========================================" -ForegroundColor Cyan
+Write-Separator
 if ($healthOk -and $chatOk) {
     Write-Host "GUARDIAN_SUMMARY: STABILIZE PASS; mock=1" -ForegroundColor Green
-    Write-Host "========================================" -ForegroundColor Cyan
+    Write-Separator
     Write-Host ""
-    Write-Host "✓ All checks passed. Chat stack is operational in MOCK mode." -ForegroundColor Green
-    Write-Host "  You can now proceed with real backend testing." -ForegroundColor Gray
+    Write-Host "All checks passed. Chat stack is operational in MOCK mode." -ForegroundColor Green
+    Write-Host "You can now proceed with real backend testing." -ForegroundColor Gray
     exit 0
-} else {
+}
+else {
     Write-Host "GUARDIAN_SUMMARY: STABILIZE FAIL; mock=1" -ForegroundColor Red
-    Write-Host "========================================" -ForegroundColor Cyan
+    Write-Separator
     Write-Host ""
-    Write-Host "✗ Stabilize checks failed. Diagnostics:" -ForegroundColor Red
-    Write-Host "  - Health endpoint: $(if ($healthOk) { '✓ PASS' } else { '✗ FAIL' })" -ForegroundColor Gray
-    Write-Host "  - Chat endpoint:   $(if ($chatOk) { '✓ PASS' } else { '✗ FAIL' })" -ForegroundColor Gray
+    Write-Host "Stabilize checks failed. Diagnostics:" -ForegroundColor Red
+    Write-Host "  - Health endpoint: $(if ($healthOk) { '[PASS]' } else { '[FAIL]' })" -ForegroundColor Gray
+    Write-Host "  - Chat endpoint:   $(if ($chatOk) { '[PASS]' } else { '[FAIL]' })" -ForegroundColor Gray
     Write-Host ""
     Write-Host "Next steps:" -ForegroundColor Yellow
     Write-Host "  1. Check web-ui logs for errors" -ForegroundColor Gray

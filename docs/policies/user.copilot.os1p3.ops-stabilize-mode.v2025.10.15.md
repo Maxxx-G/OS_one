@@ -107,6 +107,47 @@ Next steps:
 
 ---
 
+## Windows PowerShell 5.1 Compatibility
+
+The stabilize script is designed for **Windows PowerShell 5.1** (native on all Windows systems) and requires no additional dependencies.
+
+### Key Compatibility Notes
+
+**No Null-Conditional Operators**  
+PowerShell 5.1 does not support `?.` syntax.
+
+❌ **Avoid:**
+```powershell
+$reply = $chatJson?.choices?[0]?.message?.content
+```
+
+✅ **Use instead:**
+```powershell
+if ($chatJson -and $chatJson.choices -and $chatJson.choices.Count -gt 0) {
+    $firstChoice = $chatJson.choices[0]
+    if ($firstChoice -and $firstChoice.message -and $firstChoice.message.content) {
+        $reply = [string]$firstChoice.message.content
+    }
+}
+```
+
+**Explicit Type Casting**
+```powershell
+# Force string conversion to avoid pipeline issues
+$reply = [string]$firstChoice.message.content
+```
+
+**Shell Specification in CI**
+When running in GitHub Actions, always specify `shell: powershell` (not `pwsh`):
+```yaml
+- name: Run Stabilize Check
+  shell: powershell  # Uses Windows PowerShell 5.1
+  run: |
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p3.ops-stabilize.v2025.10.15.ps1
+```
+
+---
+
 ## Runbook
 
 ### When to Use Stabilize Mode
@@ -158,7 +199,7 @@ FAIL? → Check diagnostics
 
 - Web-UI dev server NOT already running on port 4000 (script will start it)
   - OR web-UI already running (script will detect and skip startup)
-- PowerShell 5.1 or higher
+- **Windows PowerShell 5.1** or higher (native on Windows, no pwsh dependency)
 - npm installed and `apps/web-ui` dependencies available
 
 ---
@@ -264,21 +305,31 @@ Add to `.github/workflows/guardian.yml`:
 
 ```yaml
 ops_stabilize_check:
-  runs-on: ubuntu-latest
+  runs-on: windows-latest
   if: github.event_name == 'workflow_dispatch'
   needs: [guard]
+  env:
+    CHAT_BACKEND_MOCK: "1"
+    CHAT_BACKEND_MODE: "auto"
   steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
-        node-version: "20"
-    - run: npm ci
-    - name: Run Stabilize Check
-      env:
-        CHAT_BACKEND_MOCK: "1"
-        CHAT_BACKEND_MODE: "auto"
+        node-version: "18"
+    - name: Install dependencies
+      shell: powershell
       run: |
-        pwsh -f scripts/tools/user.copilot.os1p3.ops-stabilize.v2025.10.15.ps1
+        Write-Host "Installing web-ui dependencies..."
+        npm install --prefix apps/web-ui
+    - name: Run Stabilize Check
+      shell: powershell
+      run: |
+        Write-Host "Running ops stabilize check..."
+        & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p3.ops-stabilize.v2025.10.15.ps1
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "::error::Stabilize check failed"
+          exit 1
+        }
 ```
 
 ### Trigger via GitHub UI
