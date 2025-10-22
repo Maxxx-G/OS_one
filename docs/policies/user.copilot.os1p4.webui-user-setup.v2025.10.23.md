@@ -40,7 +40,7 @@ Set up the OS One WebUI so you can:
 
 ```powershell
 # Start Archon (port 7700)
-docker compose -f docker-compose.yml up -d archon
+docker compose up -d archon-api
 
 # Wait for health confirmation
 curl http://localhost:7700/health
@@ -161,7 +161,7 @@ docs(stb): add STB-CPL-A10 — OS One WebUI User Setup
 ### One-Line Startup (After Initial Setup)
 ```powershell
 # Terminal 1: Start Archon
-docker compose up -d archon
+docker compose up -d archon-api
 
 # Terminal 2: Start WebUI
 cd D:\OS_One; npm run dev
@@ -189,7 +189,7 @@ npm run webui:bringup
 ## 🎯 Daily Workflow
 
 ### Morning Startup
-1. **Start Archon:** `docker compose up -d archon`
+1. **Start Archon:** `docker compose up -d archon-api`
 2. **Start WebUI:** `npm run dev`
 3. **Open Browser:** `http://localhost:4000/chat`
 4. **Activate Gabriel:** Type `/start gabriel` in chat
@@ -218,7 +218,7 @@ netstat -ano | findstr :7700
 taskkill /F /PID <PID>
 
 # Restart Archon
-docker compose up -d archon
+docker compose up -d archon-api
 ```
 
 ### Issue: WebUI not loading
@@ -285,7 +285,7 @@ npm run dev
 ### Faster Startup
 ```powershell
 # Keep Archon running all day
-docker compose up -d archon
+docker compose up -d archon-api
 
 # Only restart WebUI when needed
 npm run dev
