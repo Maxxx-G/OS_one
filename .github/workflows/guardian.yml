@@ -1,0 +1,340 @@
+name: Zero-Tolerance Guardian (Blocking Mode)
+on:
+  workflow_dispatch: # Manual trigger available
+  pull_request: # Auto-run on PRs
+  push:
+    branches: [main] # Auto-run on push to main
+  schedule:
+    - cron: "0 * * * *" # Hourly canary on main
+jobs:
+  guard:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - name: Run Zero-Tolerance Guardian
+        run: node scripts/checks/stb_guard.mjs
+      - name: STB Header Validator
+        run: npm run validate:stb
+
+  telemetry-contract-smoke:
+    runs-on: windows-latest
+    if: vars.DEV_SERVER_URL != ''
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Telemetry Metrics Contract Smoke
+        env:
+          DEV_SERVER_URL: ${{ vars.DEV_SERVER_URL }}
+        shell: pwsh
+        run: |
+          $exitCode = 0
+          try {
+            $baseUrl = $env:DEV_SERVER_URL
+            if ([string]::IsNullOrWhiteSpace($baseUrl)) {
+              Write-Host "::warning::DEV_SERVER_URL not provided; skipping telemetry contract smoke"
+              exit 0
+            }
+            & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.codex.os1p2telemetry.contract-smoke.v2025.10.13.ps1 -BaseUrl $baseUrl
+            $exitCode = $LASTEXITCODE
+          } catch {
+            $exitCode = 1
+          }
+
+          if ($exitCode -eq 2) {
+            Write-Host "::warning::Telemetry contract smoke SKIPPED (dev server not available)"
+            exit 0
+          } elseif ($exitCode -ne 0) {
+            Write-Host "::error::Telemetry contract smoke FAILED"
+            exit 1
+          }
+
+          Write-Host "Telemetry contract smoke PASSED"
+
+  validate-stb:
+    runs-on: windows-latest
+    env:
+      STRICT: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate STB Files
+        shell: pwsh
+        run: |
+          Write-Host "Scanning for STB files (*.os1p*.md)..."
+          $stbFiles = Get-ChildItem -Recurse -Include "*.os1p*.md" -File | Select-Object -ExpandProperty FullName
+
+          if ($stbFiles.Count -eq 0) {
+            Write-Host "No STB files found. Skipping validation."
+            exit 0
+          }
+
+          Write-Host "Found $($stbFiles.Count) STB file(s) to validate"
+
+          $failed = @()
+          foreach ($file in $stbFiles) {
+            Write-Host "Validating: $file"
+            & powershell -NoProfile -ExecutionPolicy Bypass -File ops/check_plan_templates.ps1 -Path $file
+            if ($LASTEXITCODE -ne 0) {
+              $failed += $file
+            }
+          }
+
+          if ($failed.Count -gt 0) {
+            Write-Host "::error::STB validation failed for $($failed.Count) file(s)"
+            $failed | ForEach-Object { Write-Host "::error::  - $_" }
+            exit 1
+          }
+
+          Write-Host "All STB files passed validation ✓"
+
+  docs_strict:
+    runs-on: windows-latest
+    env:
+      STRICT: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Docs Strict Sweep
+        shell: pwsh
+        run: |
+          Write-Host "Running docs STRICT sweep for forbidden ports and multi-fence violations..."
+          & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p3.docs-strict-sweep.v2025.10.13.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::Docs STRICT sweep found violations"
+            exit 1
+          }
+      - name: Validate STB format inside docs (STRICT)
+        shell: pwsh
+        run: |
+          Write-Host "Validating STB format in docs folder..."
+          $docs = Get-ChildItem -Recurse -File -Path docs -Include *.md, *.mdx | Select-Object -ExpandProperty FullName
+          if ($docs.Count -eq 0) {
+            Write-Host "No markdown files found in docs. Skipping."
+            exit 0
+          }
+          $failed = @()
+          foreach ($f in $docs) {
+            # Only validate files matching STB naming pattern
+            if ($f -match '\.os1p\d+') {
+              Write-Host "Validating: $f"
+              & powershell -NoProfile -ExecutionPolicy Bypass -File ops/check_plan_templates.ps1 -Path $f
+              if ($LASTEXITCODE -ne 0) {
+                $failed += $f
+              }
+            }
+          }
+          if ($failed.Count -gt 0) {
+            Write-Host "::error::STB validation failed for $($failed.Count) file(s) in docs"
+            $failed | ForEach-Object { Write-Host "::error::  - $_" }
+            exit 1
+          }
+          Write-Host "All docs STB files passed validation ✓"
+
+  theta_smoke:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: WS Probe
+        shell: powershell
+        run: |
+          Write-Host "Running WebSocket probe..."
+          & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.codex.os1p3.ws-probe.v2025.10.13.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::WebSocket probe failed - endpoint may not be available"
+            exit 1
+          }
+      - name: θ Self-Heal Smoke
+        shell: powershell
+        run: |
+          Write-Host "Running θ-layer self-heal smoke tests..."
+          & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.codex.os1p3.theta-self-heal-smoke-updated.v2025.10.13.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::Theta smoke tests failed"
+            exit 1
+          }
+
+  ui_chat_smoke:
+    runs-on: windows-latest
+    needs: [validate-stb]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - name: Install dependencies
+        shell: powershell
+        run: |
+          Write-Host "Installing web-ui dependencies..."
+          npm install --prefix apps/web-ui
+      - name: Start dev server (web-ui)
+        shell: powershell
+        run: |
+          Write-Host "Starting web-ui dev server..."
+          $env:CHAT_BACKEND_URL = "http://localhost:7700/v1/chat"
+          Start-Job -ScriptBlock {
+            Set-Location $using:PWD
+            $env:CHAT_BACKEND_URL = "http://localhost:7700/v1/chat"
+            npm --prefix apps/web-ui run dev
+          } | Out-Null
+          Write-Host "Waiting for server to start..."
+          Start-Sleep -Seconds 12
+      - name: Backend stub check (optional)
+        shell: powershell
+        continue-on-error: true
+        run: |
+          try {
+            $body = @{ messages = @(@{ role = "user"; content = "hi" }) } | ConvertTo-Json -Depth 4
+            Invoke-WebRequest -Method POST -Uri "http://localhost:7700/v1/chat" -Body $body -ContentType "application/json" -UseBasicParsing | Out-Null
+            Write-Host "Backend reachable at :7700"
+          }
+          catch {
+            Write-Host "Backend not reachable (ok if not available in CI)"
+          }
+      - name: Chat smoke test
+        shell: powershell
+        run: |
+          Write-Host "Running chat smoke test..."
+          & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p3.chat-smoke.v2025.10.14.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::Chat smoke test failed"
+            exit 1
+          }
+
+  ui_chat_contract:
+    runs-on: windows-latest
+    needs: [ui_chat_smoke]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - name: Ensure web-ui is running
+        shell: powershell
+        run: |
+          Write-Host "Ensuring web-ui dev server is running..."
+          # Check if already running, otherwise start fresh
+          try {
+            Invoke-WebRequest -Uri "http://localhost:4000" -UseBasicParsing -TimeoutSec 2 | Out-Null
+            Write-Host "Server already running"
+          }
+          catch {
+            Write-Host "Starting fresh dev server..."
+            $env:CHAT_BACKEND_URL = "http://localhost:7700/v1/chat"
+            Start-Job -ScriptBlock {
+              Set-Location $using:PWD
+              $env:CHAT_BACKEND_URL = "http://localhost:7700/v1/chat"
+              npm --prefix apps/web-ui run dev
+            } | Out-Null
+            Start-Sleep -Seconds 10
+          }
+      - name: Chat contract check
+        shell: powershell
+        run: |
+          Write-Host "Running chat contract check..."
+          & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p3.chat-contract-check.v2025.10.14.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::Chat contract check failed"
+            exit 1
+          }
+
+  ui_chat_e2e:
+    runs-on: windows-latest
+    needs: [validate-stb]
+    env:
+      CHAT_BACKEND_MOCK: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - name: Install dependencies
+        shell: powershell
+        run: |
+          Write-Host "Installing web-ui dependencies..."
+          npm install --prefix apps/web-ui
+      - name: Start web-ui (MOCK mode)
+        shell: powershell
+        run: |
+          Write-Host "Starting web-ui dev server with MOCK mode enabled..."
+          $env:CHAT_BACKEND_MOCK = "1"
+          Start-Job -ScriptBlock {
+            Set-Location $using:PWD
+            $env:CHAT_BACKEND_MOCK = "1"
+            npm --prefix apps/web-ui run dev
+          } | Out-Null
+          Write-Host "Waiting for server to start..."
+          Start-Sleep -Seconds 10
+      - name: E2E smoke test (MOCK)
+        shell: powershell
+        run: |
+          Write-Host "Running E2E smoke test in MOCK mode..."
+          & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p3.ui-chat-e2e-mock.v2025.10.14.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::E2E smoke test failed"
+            exit 1
+          }
+
+  ui_chat_canary:
+    if: github.event_name == 'schedule' && github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    env:
+      CHAT_BACKEND_MOCK: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - name: Install dependencies
+        shell: powershell
+        run: |
+          Write-Host "Installing web-ui dependencies..."
+          npm install --prefix apps/web-ui
+      - name: Start web-ui (MOCK mode)
+        shell: powershell
+        run: |
+          Write-Host "Starting web-ui dev server with MOCK mode enabled..."
+          $env:CHAT_BACKEND_MOCK = "1"
+          Start-Job -ScriptBlock {
+            Set-Location $using:PWD
+            $env:CHAT_BACKEND_MOCK = "1"
+            npm --prefix apps/web-ui run dev
+          } | Out-Null
+          Write-Host "Waiting for server to start..."
+          Start-Sleep -Seconds 10
+      - name: Canary health check
+        shell: powershell
+        run: |
+          Write-Host "Running hourly canary check..."
+          & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p3.ui-chat-canary.v2025.10.14.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::Canary health check failed"
+            exit 1
+          }
+
+  ops_stabilize_check:
+    runs-on: windows-latest
+    if: github.event_name == 'workflow_dispatch'
+    needs: [guard]
+    env:
+      CHAT_BACKEND_MOCK: "1"
+      CHAT_BACKEND_MODE: "auto"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - name: Install dependencies
+        shell: powershell
+        run: |
+          Write-Host "Installing web-ui dependencies..."
+          npm install --prefix apps/web-ui
+      - name: Run Stabilize Check
+        shell: powershell
+        run: |
+          Write-Host "Running ops stabilize check..."
+          & powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tools/user.copilot.os1p3.ops-stabilize.v2025.10.15.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::Stabilize check failed"
+            exit 1
+          }
+

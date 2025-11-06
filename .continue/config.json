@@ -1,0 +1,26 @@
+{
+  "models": [
+    {
+      "title": "DeepSeek R1 (local)",
+      "provider": "openai",
+      "model": "deepseek-r1:8b",
+      "apiBase": "http://localhost:11434/v1",
+      "apiKey": "ollama",
+      "contextLength": 128000,
+      "temperature": 0.2,
+      "top_p": 0.9
+    }
+  ],
+  "slashCommands": [
+    {
+      "name": "stb",
+      "prompt": "Generate an OS One Single Task Block (≤5 files, ≤50 lines/file, One-Fence Rule, CRLF-safe, zero new deps). Output unified diffs + commit message.",
+      "model": "DeepSeek R1 (local)"
+    }
+  ],
+  "tools": [
+    { "name": "os1_health", "type": "rest", "method": "GET", "url": "http://localhost:4000/api/health" },
+    { "name": "os1_reason", "type": "rest", "method": "POST", "url": "http://localhost:4000/api/voice/reason", "headers": { "content-type": "application/json" } }
+  ],
+  "allowAnonymousTelemetry": false
+}

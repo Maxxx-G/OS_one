@@ -1,0 +1,39 @@
+#!/bin/sh
+# OS_One pre-commit hook: STB compliance validation
+# Cross-platform: uses Node/npm so it works on Windows via Git Bash and on Unix
+
+# Zero-Tolerance Guardian is ENABLED by default (blocking mode)
+# To disable temporarily: git commit --no-verify
+# To test manually: node scripts/checks/stb_guard.mjs
+
+echo "🛡️  Running Zero-Tolerance Guardian..."
+if command -v node >/dev/null 2>&1; then
+  node scripts/checks/stb_guard.mjs
+  STATUS=$?
+  if [ $STATUS -ne 0 ]; then
+    echo "\n✖ Pre-commit blocked: Zero-Tolerance Guardian failed." >&2
+    echo "To bypass: git commit --no-verify (not recommended)" >&2
+    exit $STATUS
+  fi
+else
+  echo "⚠️  Node.js not found; skipping Guardian check" >&2
+fi
+
+# Run STB header validator
+if command -v npm >/dev/null 2>&1; then
+  npm run --silent validate:stb
+  STATUS=$?
+else
+  echo "npm not found; attempting npx node to run validator" >&2
+  npx --yes --silent node scripts/validate_stb_headers.mjs
+  STATUS=$?
+fi
+
+if [ $STATUS -ne 0 ]; then
+  echo "\n✖ Pre-commit blocked: STB validation failed." >&2
+  exit $STATUS
+fi
+
+# All good
+exit 0
+exit 0

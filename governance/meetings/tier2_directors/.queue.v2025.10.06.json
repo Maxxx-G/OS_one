@@ -1,0 +1,12 @@
+[
+  {
+    "topic_id": "elon-sensor-outreach-prep",
+    "title": "Prep Dossier: Sensor Tech Landscape & Partnership Angles",
+    "authority_tier": 2,
+    "meeting_tier": 2,
+    "effective_ethic": "SECONDARY",
+    "departments": ["R&D", "PR", "Legal", "Finance"],
+    "participants": ["IT Director", "Legal Director", "Finance Director", "Gabriel"],
+    "status": "queued"
+  }
+]

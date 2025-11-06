@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Optional local hook. Enable with:
+#   git config core.hooksPath .githooks
+# then make executable:
+#   chmod +x .githooks/pre-commit
+
+echo "Running filename policy check on staged files..."
+node scripts/check-names.mjs --staged || exit 1

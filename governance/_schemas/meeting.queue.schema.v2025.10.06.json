@@ -1,0 +1,39 @@
+{
+  "$id": "os1.meeting.queue.schema.v2025.10.06",
+  "type": "object",
+  "required": [
+    "topic_id",
+    "title",
+    "authority_tier",
+    "meeting_tier",
+    "effective_ethic",
+    "departments",
+    "participants",
+    "status"
+  ],
+  "properties": {
+    "topic_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "title": { "type": "string", "minLength": 3 },
+    "authority_tier": { "type": "integer", "enum": [1, 2, 3, 4] },
+    "meeting_tier": { "type": "integer", "enum": [1, 2, 3, 4] },
+    "effective_ethic": { "type": "string", "enum": ["PRIMACY", "SECONDARY", "GUARDIAN"] },
+    "departments": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "participants": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["queued", "scheduled", "in_progress", "done", "blocked"]
+    },
+    "next_review": { "type": "string" },
+    "attachments": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": true
+}

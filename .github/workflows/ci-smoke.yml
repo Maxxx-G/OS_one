@@ -1,0 +1,32 @@
+name: CI Smoke
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  type-and-routes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Type check (apps/web-ui)
+        run: |
+          if [ -f "apps/web-ui/tsconfig.json" ]; then
+            npx -y -p typescript@5 -p @types/node@20 tsc -p apps/web-ui --noEmit
+          else
+            echo "tsconfig missing, skipping typecheck"
+          fi
+      - name: Routes presence (health/stream/threads)
+        shell: pwsh
+        run: |
+          $paths = @(
+            "apps/web-ui/app/api/llm/[provider]/health/route.ts",
+            "apps/web-ui/app/api/llm/[provider]/stream/route.ts",
+            "apps/web-ui/app/api/threads/route.ts",
+            "apps/web-ui/app/api/threads/[id]/messages/route.ts"
+          )
+          foreach ($p in $paths) {
+            if (!(Test-Path -LiteralPath $p)) { Write-Error "Missing route: $p"; exit 20 }
+          }
+          Write-Output "Routes OK"

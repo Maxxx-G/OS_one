@@ -1,0 +1,52 @@
+﻿services:
+  archon-api:
+    container_name: archon-api
+    build:
+      context: ./integrations/archon/python
+    ports:
+      - "7700:7700"
+    restart: unless-stopped
+    networks:
+      - os1_dev
+
+  mcp-files:
+    image: tiangolo/uvicorn-gunicorn-fastapi:python3.11
+    environment:
+      APP_MODULE: app:app
+      PORT: "7011"
+      MCP_NAME: mcp-files
+      LOG_LEVEL: info
+    volumes:
+      - ./integrations/mcp/files:/app
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:7011/healthz'')"'
+      interval: 10s
+      timeout: 2s
+      retries: 5
+    networks:
+      - os1_dev
+
+  mcp-web:
+    image: tiangolo/uvicorn-gunicorn-fastapi:python3.11
+    environment:
+      APP_MODULE: app:app
+      PORT: "7012"
+      MCP_NAME: mcp-web
+      LOG_LEVEL: info
+    volumes:
+      - ./integrations/mcp/web:/app
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:7012/healthz'')"'
+      interval: 10s
+      timeout: 2s
+      retries: 5
+    networks:
+      - os1_dev
+
+networks:
+  os1_dev:
+    name: os1_dev

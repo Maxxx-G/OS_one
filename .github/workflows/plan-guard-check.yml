@@ -1,0 +1,36 @@
+name: Plan & Guard Sync
+on:
+  pull_request:
+  push:
+    branches: [ main, develop ]
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deps (node)
+        run: npm ci || npm install
+      - name: Aggregate guards
+        run: npm run docs:progress
+      - name: Check no uncommitted changes
+        run: |
+          git status --porcelain
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "::error ::PHASE_2_PROGRESS.md is out of date. Run 'npm run docs:progress' and commit."; exit 2;
+          fi
+      - name: Install pytest (optional)
+        run: python -m pip install -q pytest || true
+      - name: Run tests (if available)
+        run: |
+          if [ -d integrations/archon/python/tests ]; then
+            python -m pytest -q integrations/archon/python/tests || true
+          fi

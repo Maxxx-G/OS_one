@@ -1,0 +1,19 @@
+{
+  "files.encoding": "utf8",
+  "files.autoGuessEncoding": false,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "editor.formatOnSave": true,
+  "prettier.endOfLine": "lf",
+  "editor.inlineSuggest.enabled": false,
+  "github.copilot.editor.enableAutoCompletions": false,
+  "cody.autocomplete.enabled": false,
+  "cody.history.save": true,
+  "cody.codeActions.enabled": true,
+  "cody.serverEndpoint": "https://sourcegraph.com",
+  "cody.telemetry.level": "off",
+  "phind.enableTelemetry": false,
+  "phind.searchEnabled": true,
+  "phind.summarizeErrors": true
+}
+

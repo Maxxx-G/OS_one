@@ -1,0 +1,173 @@
+{
+  "_comment": "X-Tier1: user\nX-Agent: copilot\nX-Domain: os1universe\nX-Purpose: genesis-app-registry\nX-Version: v2025.10.12\nX-Policy: filename+header compliance required",
+  "_metadata": {
+    "description": "Machine-readable registry of The Genesis Series applications",
+    "last_updated": "2025-10-13"
+  },
+  "tier1": [
+    {
+      "key": "aurora-wire",
+      "title": "AuroraWire",
+      "category": "news",
+      "domain": "News & Research",
+      "description": "Real-time feed + context synthesis with RAG hooks",
+      "status": "mvp",
+      "stage": "active",
+      "telemetry": true,
+      "telemetry_contract": "v2025.10.13",
+      "tokens": "runtime",
+      "route": "/aurora",
+      "api": "/api/aurora/health",
+      "seccomms": ["alpha", "epsilon", "zeta", "eta"],
+      "features": ["SEC-COMMS enabled", "RAG context synthesis", "Semantic search"]
+    },
+    {
+      "key": "nexxis-trade",
+      "title": "Nexxis Trade",
+      "category": "crypto",
+      "domain": "Crypto & Finance",
+      "description": "Portfolio tracking + analytics with local-first security",
+      "status": "planned",
+      "seccomms": ["alpha", "epsilon", "zeta", "eta"],
+      "features": ["No external egress by default", "Encrypted vault storage", "Real-time analytics"]
+    },
+    {
+      "key": "maxxi-ops",
+      "title": "Maxxi Ops",
+      "category": "business",
+      "domain": "Business & IT",
+      "description": "Docs, projects, automation with STB-native workflows",
+      "status": "planned",
+      "seccomms": ["alpha", "delta", "epsilon", "zeta", "eta"],
+      "features": ["STB-native workflows", "Project templates", "Task automation"]
+    },
+    {
+      "key": "cineforge",
+      "title": "CineForge",
+      "category": "video",
+      "domain": "Video Studio",
+      "description": "AI director/editor with local render path",
+      "status": "planned",
+      "seccomms": ["alpha", "epsilon", "zeta", "eta"],
+      "features": ["Local render path first", "Cloud optional", "AI-assisted editing"]
+    },
+    {
+      "key": "wavemind",
+      "title": "WaveMind",
+      "category": "music",
+      "domain": "Music Studio",
+      "description": "Composition + mastering with offline presets",
+      "status": "planned",
+      "seccomms": ["alpha", "epsilon", "zeta", "eta"],
+      "features": ["Offline presets", "MIDI-aware", "AI composition assist"]
+    },
+    {
+      "key": "lexicore",
+      "title": "LexiCore",
+      "category": "writer",
+      "domain": "Word Processor",
+      "description": "Cognitive documents with STB block inserts",
+      "status": "mvp",
+      "stage": "active",
+      "telemetry": true,
+      "telemetry_contract": "v2025.10.13",
+      "tokens": "runtime",
+      "route": "/lexicore",
+      "api": "/api/lexicore/health",
+      "seccomms": ["alpha", "delta", "epsilon", "zeta", "eta"],
+      "features": ["STB block inserts", "Semantic search", "Context-aware suggestions"]
+    },
+    {
+      "key": "dev-matrix",
+      "title": "Dev Matrix",
+      "category": "ide",
+      "domain": "IDE & CLI",
+      "description": "AI coding + terminal with safe sandboxes",
+      "status": "planned",
+      "seccomms": ["alpha", "delta", "epsilon", "zeta", "eta"],
+      "features": ["Safe sandboxes", "Code replay", "ES256 signed commits"]
+    },
+    {
+      "key": "echoreach",
+      "title": "EchoReach",
+      "category": "marketing",
+      "domain": "Marketing & Sales",
+      "description": "Cross-platform engine with policy-driven posting",
+      "status": "planned",
+      "seccomms": ["alpha", "delta", "epsilon", "zeta", "eta"],
+      "features": ["Policy-driven posting", "Consent-first", "Multi-platform sync"]
+    },
+    {
+      "key": "nova-path",
+      "title": "Nova Path",
+      "category": "education",
+      "domain": "Learning & Coaching",
+      "description": "Mentor AI with persona vectors",
+      "status": "planned",
+      "seccomms": ["alpha", "epsilon", "zeta", "eta"],
+      "features": ["Persona vectors", "Adaptive curriculum", "Progress tracking"]
+    },
+    {
+      "key": "eidos",
+      "title": "Eidos",
+      "category": "art3d",
+      "domain": "Art / 3D / Motion",
+      "description": "Procedural design with asset vault rules",
+      "status": "planned",
+      "seccomms": ["alpha", "epsilon", "zeta", "eta"],
+      "features": ["Asset vault rules", "Render queue", "Procedural generation"]
+    }
+  ],
+  "tiers": {
+    "I": {
+      "name": "Foundational Apps",
+      "description": "Core applications with SEC-COMMS integration",
+      "licensing": "Open-source with commercial options"
+    },
+    "II": {
+      "name": "Adaptive Path",
+      "description": "Semi-autonomous orchestration via personality vectors",
+      "licensing": "Subscription-based (per user)"
+    },
+    "III": {
+      "name": "Sovereign Intelligence",
+      "description": "Reserved/controlled distribution with ADA oversight",
+      "licensing": "Private/discretionary access"
+    }
+  },
+  "shared_infrastructure": {
+    "seccomms": {
+      "alpha": "Origin validation & egress control",
+      "beta": "Cryptographic primitives (AES-GCM, SHA-256)",
+      "gamma": "Key distribution & rotation",
+      "delta": "ES256 identity & authenticated relay",
+      "epsilon": "Vault persistence (encrypted storage)",
+      "zeta": "Neural replay & adaptive embeddings",
+      "eta": "Telemetry & visualization"
+    },
+    "apis": {
+      "memory": "/api/memory",
+      "replay": "/api/replay",
+      "telemetry": "/api/telemetry",
+      "relay": "/api/relay"
+    }
+  },
+  "roadmap": {
+    "theta": {
+      "name": "Autonomic Regulation",
+      "description": "System homeostasis via load/ethics/resources",
+      "status": "in-progress",
+      "phase3_init": "2025-10-13"
+    },
+    "iota": {
+      "name": "Multi-Tenant Subscription",
+      "description": "Licensing enforcement & subscription management",
+      "status": "planned"
+    },
+    "kappa": {
+      "name": "App Marketplace",
+      "description": "Plugin ecosystem with curation & signing",
+      "status": "planned"
+    }
+  }
+}

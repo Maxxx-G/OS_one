@@ -1,0 +1,5 @@
+{
+  "calendar": { "FREE": false, "CORE": true, "PRO": true, "ENTERPRISE": true },
+  "timeManager": { "FREE": false, "CORE": false, "PRO": true, "ENTERPRISE": true },
+  "voiceSync": { "FREE": false, "CORE": true, "PRO": true, "ENTERPRISE": true }
+}
