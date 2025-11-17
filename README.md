@@ -86,9 +86,9 @@ Visit `http://localhost:4000` to see the application.
 
 ### Dev Port Change (Phase 2e-0)
 
-- Open-WebUI uses http://localhost:3000. This app now runs at http://localhost:3001 in dev.
-- Start: `pnpm --filter @os-one/web-ui dev` (or from `apps/web-ui`: `pnpm dev`)
-- Visit: `http://localhost:3001`
+- Open-WebUI uses http://localhost:3000. This app now runs at http://localhost:4000 in dev.
+- Start: `pnpm dev` (or from `apps/web-ui`: `npm run dev`)
+- Visit: `http://localhost:4000`
 - SSE and WS demo endpoints remain under the same host (`/api/...`); no code changes required.
 
 ### Phase 2e-1 — Controller Dispatch (BMAD stub)
@@ -145,18 +145,17 @@ Windows / PowerShell quick start
    `corepack prepare pnpm@9 --activate`
    `pnpm -v`
 3. Start the app:
-   - From repo root: `pnpm web:dev` (serves http://localhost:3001)
-   - Or run helper: `pwsh -File .\scripts\start-web-ui.ps1`
-4. If 3001 is busy: `pnpm web:dev:3002` → http://localhost:3002
+   - From repo root: `pnpm dev` (serves http://localhost:4000)
+4. If port 4000 is busy, you'll need to stop the process or change the port in `apps/web-ui/package.json`
 
 Troubleshooting
 
-- Check listener: `Test-NetConnection localhost -Port 3001`
-- If refused: ensure the dev terminal shows `ready - started server on 0.0.0.0:3001`
+- Check listener: `Test-NetConnection localhost -Port 4000`
+- If refused: ensure the dev terminal shows `ready - started server on 0.0.0.0:4000`
 - Find/kill port holder:
-  `Get-NetTCPConnection -LocalPort 3001 | Select OwningProcess`
+  `Get-NetTCPConnection -LocalPort 4000 | Select OwningProcess`
   `Get-Process -Id <PID> | Stop-Process -Force`
-- WSL/VM: binding is already `-H 0.0.0.0`; visit `http://127.0.0.1:3001`
+- WSL/VM: binding is already `-H 0.0.0.0`; visit `http://127.0.0.1:4000`
 
 ### Phase 2e-7 — DB Message History (Demo)
 
@@ -237,7 +236,7 @@ See [`docs/VOICE_PHASE3_CHANGELOG.md`](docs/VOICE_PHASE3_CHANGELOG.md) for full 
 1. Read the **Project Plan (latest)** top to bottom.
 2. Use `/start` to announce context; use `/break` for snapshotting (done/pending/blockers/next).
 3. Create **one** Codex task block at a time using the **Single Task Block** template.
-4. Respect constraints (TypeScript-only, App Router, ports 3001/3002, feature flags off by default).
+4. Respect constraints (TypeScript-only, App Router, port 4000, feature flags off by default).
 5. Update the plan’s **Decisions Log** when architecture changes occur.
 
 ## How to File a Single Task Block (Codex)
