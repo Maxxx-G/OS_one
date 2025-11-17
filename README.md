@@ -1,10 +1,34 @@
-﻿Phase 2a adds shared types and a Zustand store. No UI wiring yet.
+# OS_One
 
-Phase 2b adds a demo ReadableStream API and a minimal client hook to stream text into the store.
+> A next-generation operating system interface powered by AI
 
-Run:
+## 🚀 Getting Started
 
-- pnpm instal## Docume## Documentation Index
+**New to this repository?** Start here: **[SETUP.md](SETUP.md)**
+
+The setup guide covers:
+- Prerequisites and installation
+- How to run the development server
+- GitHub Copilot CLI usage (optional)
+- Troubleshooting common issues
+
+**Using GitHub Copilot in VS Code?** See: **[docs/COPILOT_WORKSPACE_SETUP.md](docs/COPILOT_WORKSPACE_SETUP.md)** for workspace permissions and write access configuration.
+
+### Quick Start
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start development server (runs on port 4000)
+pnpm dev
+```
+
+Visit `http://localhost:4000` to see the application.
+
+---
+
+## Documentation Index
 
 - **Project Plan (latest)** → [`docs/project_plans/user.copilot.os1p1.project-plan.v2025.10.10.md`](docs/project_plans/user.copilot.os1p1.project-plan.v2025.10.10.md)
 - **Agent GPT5 Handover** → [`docs/AGENT_GPT5_HANDOVER.md`](docs/AGENT_GPT5_HANDOVER.md)
@@ -64,9 +88,9 @@ Run:
 
 ### Dev Port Change (Phase 2e-0)
 
-- Open-WebUI uses http://localhost:3000. This app now runs at http://localhost:3001 in dev.
-- Start: `pnpm --filter @os-one/web-ui dev` (or from `apps/web-ui`: `pnpm dev`)
-- Visit: `http://localhost:3001`
+- Open-WebUI uses http://localhost:3000. This app now runs at http://localhost:4000 in dev.
+- Start: `pnpm dev` (or from `apps/web-ui`: `npm run dev`)
+- Visit: `http://localhost:4000`
 - SSE and WS demo endpoints remain under the same host (`/api/...`); no code changes required.
 
 ### Phase 2e-1 — Controller Dispatch (BMAD stub)
@@ -123,18 +147,17 @@ Windows / PowerShell quick start
    `corepack prepare pnpm@9 --activate`
    `pnpm -v`
 3. Start the app:
-   - From repo root: `pnpm web:dev` (serves http://localhost:3001)
-   - Or run helper: `pwsh -File .\scripts\start-web-ui.ps1`
-4. If 3001 is busy: `pnpm web:dev:3002` → http://localhost:3002
+   - From repo root: `pnpm dev` (serves http://localhost:4000)
+4. If port 4000 is busy, you'll need to stop the process or change the port in `apps/web-ui/package.json`
 
 Troubleshooting
 
-- Check listener: `Test-NetConnection localhost -Port 3001`
-- If refused: ensure the dev terminal shows `ready - started server on 0.0.0.0:3001`
+- Check listener: `Test-NetConnection localhost -Port 4000`
+- If refused: ensure the dev terminal shows `ready - started server on 0.0.0.0:4000`
 - Find/kill port holder:
-  `Get-NetTCPConnection -LocalPort 3001 | Select OwningProcess`
+  `Get-NetTCPConnection -LocalPort 4000 | Select OwningProcess`
   `Get-Process -Id <PID> | Stop-Process -Force`
-- WSL/VM: binding is already `-H 0.0.0.0`; visit `http://127.0.0.1:3001`
+- WSL/VM: binding is already `-H 0.0.0.0`; visit `http://127.0.0.1:4000`
 
 ### Phase 2e-7 — DB Message History (Demo)
 
@@ -215,7 +238,7 @@ See [`docs/VOICE_PHASE3_CHANGELOG.md`](docs/VOICE_PHASE3_CHANGELOG.md) for full 
 1. Read the **Project Plan (latest)** top to bottom.
 2. Use `/start` to announce context; use `/break` for snapshotting (done/pending/blockers/next).
 3. Create **one** Codex task block at a time using the **Single Task Block** template.
-4. Respect constraints (TypeScript-only, App Router, ports 3001/3002, feature flags off by default).
+4. Respect constraints (TypeScript-only, App Router, port 4000, feature flags off by default).
 5. Update the plan’s **Decisions Log** when architecture changes occur.
 
 ## How to File a Single Task Block (Codex)
