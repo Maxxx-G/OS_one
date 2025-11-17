@@ -1,10 +1,32 @@
-﻿Phase 2a adds shared types and a Zustand store. No UI wiring yet.
+# OS_One
 
-Phase 2b adds a demo ReadableStream API and a minimal client hook to stream text into the store.
+> A next-generation operating system interface powered by AI
 
-Run:
+## 🚀 Getting Started
 
-- pnpm instal## Docume## Documentation Index
+**New to this repository?** Start here: **[SETUP.md](SETUP.md)**
+
+The setup guide covers:
+- Prerequisites and installation
+- How to run the development server
+- GitHub Copilot CLI usage (optional)
+- Troubleshooting common issues
+
+### Quick Start
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm web:dev
+```
+
+Visit `http://localhost:3001` to see the application.
+
+---
+
+## Documentation Index
 
 - **Project Plan (latest)** → [`docs/project_plans/user.copilot.os1p1.project-plan.v2025.10.10.md`](docs/project_plans/user.copilot.os1p1.project-plan.v2025.10.10.md)
 - **Agent GPT5 Handover** → [`docs/AGENT_GPT5_HANDOVER.md`](docs/AGENT_GPT5_HANDOVER.md)
