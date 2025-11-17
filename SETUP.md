@@ -2,6 +2,8 @@
 
 This guide will help you set up and work with the OS_One repository, including how to use GitHub Copilot CLI (codex) if needed.
 
+> **Windows Users**: For a Windows-specific setup guide with PowerShell instructions, see [docs/WINDOWS_SETUP.md](docs/WINDOWS_SETUP.md)
+
 ## Table of Contents
 - [Prerequisites](#prerequisites)
 - [Quick Start (Without GitHub Copilot CLI)](#quick-start-without-github-copilot-cli)
