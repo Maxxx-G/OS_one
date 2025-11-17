@@ -3,6 +3,8 @@
 This guide will help you set up and work with the OS_One repository, including how to use GitHub Copilot CLI (codex) if needed.
 
 > **Windows Users**: For a Windows-specific setup guide with PowerShell instructions, see [docs/WINDOWS_SETUP.md](docs/WINDOWS_SETUP.md)
+>
+> **GitHub Copilot in VS Code**: For instructions on configuring GitHub Copilot with workspace write access in your IDE, see [docs/COPILOT_WORKSPACE_SETUP.md](docs/COPILOT_WORKSPACE_SETUP.md)
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)

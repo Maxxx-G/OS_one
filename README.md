@@ -12,6 +12,8 @@ The setup guide covers:
 - GitHub Copilot CLI usage (optional)
 - Troubleshooting common issues
 
+**Using GitHub Copilot in VS Code?** See: **[docs/COPILOT_WORKSPACE_SETUP.md](docs/COPILOT_WORKSPACE_SETUP.md)** for workspace permissions and write access configuration.
+
 ### Quick Start
 
 ```bash
