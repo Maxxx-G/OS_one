@@ -44,15 +44,16 @@ pnpm -v  # Should display version 9.x.x
 
 3. **Start the development server**:
    ```powershell
-   # Option A: Using pnpm directly
-   pnpm web:dev
+   # Option A: Using pnpm from the root
+   pnpm dev
    
-   # Option B: Using the helper script
-   pwsh -File .\scripts\start-web-ui.ps1
+   # Option B: Using npm from the web-ui directory
+   cd apps\web-ui
+   npm run dev
    ```
 
 4. **Access the application**:
-   Open your browser and navigate to `http://localhost:3001`
+   Open your browser and navigate to `http://localhost:4000`
 
 ## About the "codex" Command
 
@@ -121,22 +122,23 @@ Now you can use `codex suggest "your question"` instead of `gh copilot suggest "
 
 ## Common Issues and Solutions
 
-### Issue: Port 3001 Already in Use
+### Issue: Port 4000 Already in Use
 
-**Solution 1**: Use a different port
-```powershell
-pnpm web:dev:3002
-```
-Access at `http://localhost:3002`
-
-**Solution 2**: Find and kill the process using port 3001
+**Solution 1**: Find and kill the process using port 4000
 ```powershell
 # Find the process
-Get-NetTCPConnection -LocalPort 3001 | Select OwningProcess
+Get-NetTCPConnection -LocalPort 4000 | Select OwningProcess
 
 # Kill the process (replace <PID> with the process ID)
 Get-Process -Id <PID> | Stop-Process -Force
 ```
+
+**Solution 2**: Change the dev port
+Edit `apps/web-ui/package.json` and change:
+```json
+"dev": "next dev -p 4000",
+```
+to use a different port (e.g., 4001)
 
 ### Issue: PowerShell Execution Policy Error
 
@@ -192,13 +194,13 @@ node --version  # Should show v18.x or v20.x
 # Check pnpm
 pnpm -v  # Should show 9.x.x
 
-# Check if port 3001 is available
-Test-NetConnection localhost -Port 3001
+# Check if port 4000 is available
+Test-NetConnection localhost -Port 4000
 # Should show "TcpTestSucceeded : False" (meaning port is available)
 
 # Start the dev server
-pnpm web:dev
-# Should show "ready - started server on 0.0.0.0:3001"
+pnpm dev
+# Should show "ready - started server on 0.0.0.0:4000"
 ```
 
 ## Development Workflow
@@ -222,10 +224,10 @@ Typical development workflow on Windows:
 
 4. **Start dev server**:
    ```powershell
-   pnpm web:dev
+   pnpm dev
    ```
 
-5. **Open in browser**: `http://localhost:3001`
+5. **Open in browser**: `http://localhost:4000`
 
 6. **Make your changes** in your preferred code editor (VS Code, etc.)
 

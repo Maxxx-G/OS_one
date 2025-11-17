@@ -66,24 +66,19 @@ Configure your environment variables as needed in the `.env.local` file.
 
 **Option A: From the repository root**
 ```bash
-pnpm web:dev
-```
-
-**Option B: Using the helper script (Windows)**
-```powershell
-pwsh -File .\scripts\start-web-ui.ps1
-```
-
-**Option C: From the web-ui directory**
-```bash
-cd apps/web-ui
 pnpm dev
 ```
 
-The application will be available at `http://localhost:3001` (or `http://localhost:3002` if port 3001 is busy).
+**Option B: From the web-ui directory**
+```bash
+cd apps/web-ui
+npm run dev
+```
+
+The application will be available at `http://localhost:4000`.
 
 ### 5. Verify Installation
-Open your browser and navigate to `http://localhost:3001` to ensure the application is running correctly.
+Open your browser and navigate to `http://localhost:4000` to ensure the application is running correctly.
 
 ## Using GitHub Copilot CLI (Optional)
 
@@ -186,15 +181,13 @@ alias codex='gh copilot'
 ## Troubleshooting
 
 ### Port Already in Use
-If port 3001 is already in use, you can start the server on a different port:
-```bash
-pnpm web:dev:3002
-```
-This will start the server on `http://localhost:3002`.
+If port 4000 is already in use, you'll need to either:
+1. Stop the process using port 4000
+2. Modify the port in `apps/web-ui/package.json` (change `next dev -p 4000` to use a different port)
 
 **To check what's using a port on Windows:**
 ```powershell
-Get-NetTCPConnection -LocalPort 3001 | Select OwningProcess
+Get-NetTCPConnection -LocalPort 4000 | Select OwningProcess
 Get-Process -Id <PID> | Stop-Process -Force
 ```
 

@@ -18,11 +18,11 @@ The setup guide covers:
 # Install dependencies
 pnpm install
 
-# Start development server
-pnpm web:dev
+# Start development server (runs on port 4000)
+pnpm dev
 ```
 
-Visit `http://localhost:3001` to see the application.
+Visit `http://localhost:4000` to see the application.
 
 ---
 
